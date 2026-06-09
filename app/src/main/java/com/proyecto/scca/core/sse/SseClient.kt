@@ -30,6 +30,7 @@ sealed class SseEvento {
 class SseClient
     @Inject
     constructor(
+        @com.proyecto.scca.core.network.SseClientQualifier
         private val okHttpClient: OkHttpClient,
         private val sessionManager: SessionManager,
     ) {
