@@ -111,7 +111,7 @@ class DashboardViewModel
                 actualizarLecturaCompleta(lectura)
             }
 
-            // Chart series (2h window)
+            // Chart series (última jornada)
             lecturaRepository.obtenerGraficos(idNodo, FechaBackend.isoHaceNDias(1), ahora).onSuccess { serie ->
                 lecturasSerie = serie.takeLast(50)
                 emitirEstado()
