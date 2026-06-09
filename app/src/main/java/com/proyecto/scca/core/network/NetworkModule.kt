@@ -13,7 +13,22 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
+import javax.inject.Qualifier
 import javax.inject.Singleton
+
+/**
+ * Cliente OkHttp dedicado a las conexiones SSE.
+ *
+ * Un stream SSE es una respuesta HTTP "infinita": no se debe usar el cliente REST,
+ * porque:
+ *  - HttpLoggingInterceptor.Level.BODY bufferiza el cuerpo completo antes de
+ *    entregarlo, y al no terminar nunca, no entrega ningun evento.
+ *  - readTimeout(15s) corta la conexion antes del ping del backend (cada 25s),
+ *    provocando un bucle de reconexion.
+ */
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class SseClientQualifier
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -43,6 +58,7 @@ object NetworkModule {
         return AuthInterceptor(sessionManager)
     }
 
+    // --- Cliente REST (sin cambios) ---
     @Provides
     @Singleton
     fun provideOkHttpClient(
@@ -55,6 +71,23 @@ object NetworkModule {
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
             .writeTimeout(15, TimeUnit.SECONDS)
+            .build()
+    }
+
+    // --- Cliente dedicado a SSE: sin logging de BODY y sin readTimeout ---
+    @Provides
+    @Singleton
+    @SseClientQualifier
+    fun provideSseOkHttpClient(
+        authInterceptor: AuthInterceptor,
+    ): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor) // NO se anade el loggingInterceptor de BODY
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(0, TimeUnit.SECONDS) // stream infinito: sin timeout de lectura
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
+            .pingInterval(20, TimeUnit.SECONDS) // mantiene viva la conexion
             .build()
     }
 
