@@ -170,7 +170,7 @@ fun AnalisisCard(
             )
         }
         Spacer(Modifier.height(8.dp))
-        Text(analisis.resultadoTexto, style = MaterialTheme.typography.bodyMedium)
+        com.proyecto.scca.presentation.components.MarkdownText(markdown = analisis.resultadoTexto)
         Spacer(Modifier.height(4.dp))
         Text(
             "Tiempo de respuesta: ${analisis.tiempoResMs}ms",
@@ -268,10 +268,11 @@ private fun CompareColumn(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(8.dp))
-        Text(
-            analysis?.resultadoTexto ?: "Selecciona un análisis.",
-            style = MaterialTheme.typography.bodySmall,
-        )
+        if (analysis != null) {
+            com.proyecto.scca.presentation.components.MarkdownText(markdown = analysis.resultadoTexto)
+        } else {
+            Text("Selecciona un análisis.", style = MaterialTheme.typography.bodySmall)
+        }
         Spacer(Modifier.height(8.dp))
         Text(
             analysis?.let { "${it.tiempoResMs}ms" } ?: "—",

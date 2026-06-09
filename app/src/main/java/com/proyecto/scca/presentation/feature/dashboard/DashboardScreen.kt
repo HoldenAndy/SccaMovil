@@ -466,9 +466,8 @@ private fun AnalysisSummaryCard(
             }
         }
         Spacer(Modifier.height(10.dp))
-        Text(
-            analisis.resultadoTexto,
-            style = MaterialTheme.typography.bodyMedium,
+        com.proyecto.scca.presentation.components.MarkdownText(
+            markdown = analisis.resultadoTexto,
             color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(Modifier.height(12.dp))
