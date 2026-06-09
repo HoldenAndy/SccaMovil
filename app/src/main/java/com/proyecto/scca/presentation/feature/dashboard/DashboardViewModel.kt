@@ -96,6 +96,7 @@ class DashboardViewModel
 
         fun seleccionarNodo(nodo: Nodo) {
             nodoSeleccionado = nodo
+            _uiState.value = UiState.Loading
             viewModelScope.launch {
                 preferenciasStore.setUltimoNodo(nodo.idNodo.toString())
                 cargarDatosNodo(nodo.idNodo)
@@ -107,7 +108,7 @@ class DashboardViewModel
             val ahora = FechaBackend.isoHoy()
 
             lecturaRepository.obtenerUltimaLectura(idNodo).onSuccess { lectura ->
-                actualizarLecturaActual(lectura)
+                actualizarLecturaCompleta(lectura)
             }
 
             // Chart series (2h window)
@@ -132,10 +133,9 @@ class DashboardViewModel
                                 lecturasSerie =
                                     (lecturasSerie.filterNot { it.idLectura == lectura.idLectura } + lectura)
                                         .takeLast(50)
-                                viewModelScope.launch {
-                                    actualizarLecturaActual(lectura)
-                                    emitirEstado()
-                                }
+                                // Para lecturas en vivo, no hacemos querys pesadas (imagen, analisis)
+                                // ya que toman tiempo y la lectura acaba de ser creada.
+                                ultimaLectura = lectura
                                 emitirEstado()
                             }
                         }
@@ -155,7 +155,7 @@ class DashboardViewModel
                 }
         }
 
-        private suspend fun actualizarLecturaActual(lectura: Lectura) {
+        private suspend fun actualizarLecturaCompleta(lectura: Lectura) {
             ultimaLectura = lectura
             lecturaConImagen = imagenRepository.obtenerImagenPorLectura(lectura.idLectura).isSuccess
             ultimoAnalisis =
@@ -169,7 +169,13 @@ class DashboardViewModel
             pollingJob =
                 viewModelScope.launch {
                     while (isActive) {
-                        nodoSeleccionado?.let { cargarDatosNodo(it.idNodo) }
+                        nodoSeleccionado?.let { 
+                            lecturaRepository.obtenerUltimaLectura(it.idNodo).onSuccess { lectura ->
+                                if (lectura.idLectura != ultimaLectura?.idLectura) {
+                                    actualizarLecturaCompleta(lectura)
+                                }
+                            }
+                        }
                         delay(Constantes.Dashboard.POLLING_MS)
                     }
                 }
