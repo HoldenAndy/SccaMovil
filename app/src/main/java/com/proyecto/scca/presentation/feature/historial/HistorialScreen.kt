@@ -67,6 +67,51 @@ fun HistorialScreen(viewModel: HistorialViewModel = hiltViewModel()) {
                 )
             }
 
+            if (data.lecturas.isNotEmpty()) {
+                item {
+                    val reversed = data.lecturas.reversed()
+                    SccaCard(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Text("Tendencias del periodo", style = MaterialTheme.typography.titleSmall)
+                        Spacer(Modifier.height(12.dp))
+                        
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column(Modifier.weight(1f).padding(end = 4.dp)) {
+                                Text("pH", style = MaterialTheme.typography.labelSmall, color = PhColor)
+                                com.proyecto.scca.presentation.components.SparklineChart(
+                                    data = reversed.map { it.ph.toFloat() },
+                                    color = PhColor,
+                                    modifier = Modifier.fillMaxWidth().height(40.dp)
+                                )
+                            }
+                            Column(Modifier.weight(1f).padding(horizontal = 4.dp)) {
+                                Text("Temp", style = MaterialTheme.typography.labelSmall, color = TempColor)
+                                com.proyecto.scca.presentation.components.SparklineChart(
+                                    data = reversed.map { it.temperatura.toFloat() },
+                                    color = TempColor,
+                                    modifier = Modifier.fillMaxWidth().height(40.dp)
+                                )
+                            }
+                            Column(Modifier.weight(1f).padding(horizontal = 4.dp)) {
+                                Text("Turb", style = MaterialTheme.typography.labelSmall, color = TurbColor)
+                                com.proyecto.scca.presentation.components.SparklineChart(
+                                    data = reversed.map { it.turbidez.toFloat() },
+                                    color = TurbColor,
+                                    modifier = Modifier.fillMaxWidth().height(40.dp)
+                                )
+                            }
+                            Column(Modifier.weight(1f).padding(start = 4.dp)) {
+                                Text("TDS", style = MaterialTheme.typography.labelSmall, color = TdsColor)
+                                com.proyecto.scca.presentation.components.SparklineChart(
+                                    data = reversed.map { it.tds.toFloat() },
+                                    color = TdsColor,
+                                    modifier = Modifier.fillMaxWidth().height(40.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             items(data.lecturas) { lectura ->
                 LecturaCard(lectura = lectura, modifier = Modifier.padding(horizontal = 16.dp))
             }

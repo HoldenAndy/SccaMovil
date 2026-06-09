@@ -245,6 +245,7 @@ fun DashboardScreen(
                                 evaluacion = data.evaluacion.ph,
                                 unidad = "",
                                 colorSensor = PhColor,
+                                history = data.lecturasSerie.map { it.ph.toFloat() },
                                 modifier = Modifier.weight(1f),
                             )
                             SensorCard(
@@ -252,6 +253,7 @@ fun DashboardScreen(
                                 evaluacion = data.evaluacion.temperatura,
                                 unidad = "°C",
                                 colorSensor = TempColor,
+                                history = data.lecturasSerie.map { it.temperatura.toFloat() },
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -261,6 +263,7 @@ fun DashboardScreen(
                                 evaluacion = data.evaluacion.turbidez,
                                 unidad = "NTU",
                                 colorSensor = TurbColor,
+                                history = data.lecturasSerie.map { it.turbidez.toFloat() },
                                 modifier = Modifier.weight(1f),
                             )
                             SensorCard(
@@ -268,6 +271,7 @@ fun DashboardScreen(
                                 evaluacion = data.evaluacion.tds,
                                 unidad = "ppm",
                                 colorSensor = TdsColor,
+                                history = data.lecturasSerie.map { it.tds.toFloat() },
                                 modifier = Modifier.weight(1f),
                             )
                         }

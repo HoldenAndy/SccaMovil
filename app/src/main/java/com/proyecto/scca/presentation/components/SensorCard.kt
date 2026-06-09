@@ -40,6 +40,7 @@ fun SensorCard(
     evaluacion: EvaluacionParametro,
     unidad: String,
     colorSensor: Color,
+    history: List<Float> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val animatedProgress by animateFloatAsState(
@@ -119,7 +120,13 @@ fun SensorCard(
                         modifier = Modifier.padding(bottom = 6.dp),
                     )
                 }
-                Spacer(Modifier.height(9.dp))
+                Spacer(Modifier.height(6.dp))
+                SparklineChart(
+                    data = history,
+                    color = nivelColor,
+                    modifier = Modifier.fillMaxWidth().height(36.dp)
+                )
+                Spacer(Modifier.height(6.dp))
                 LinearProgressIndicator(
                     progress = { animatedProgress },
                     modifier =
