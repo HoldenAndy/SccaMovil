@@ -64,24 +64,25 @@ fun SparklineChart(
     val refLineColor = Color(0xFFD97706)
 
     Canvas(
-        modifier = modifier
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = { offset ->
-                        touchX = offset.x
-                        tryAwaitRelease()
-                        touchX = null
-                    },
-                )
-            }
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { offset -> touchX = offset.x },
-                    onDragEnd = { touchX = null },
-                    onDragCancel = { touchX = null },
-                    onDrag = { change, _ -> touchX = change.position.x },
-                )
-            },
+        modifier =
+            modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = { offset ->
+                            touchX = offset.x
+                            tryAwaitRelease()
+                            touchX = null
+                        },
+                    )
+                }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { offset -> touchX = offset.x },
+                        onDragEnd = { touchX = null },
+                        onDragCancel = { touchX = null },
+                        onDrag = { change, _ -> touchX = change.position.x },
+                    )
+                },
     ) {
         val lp = 38.dp.toPx() // left padding for y-axis labels
         val bp = 18.dp.toPx() // bottom padding for x-axis labels
@@ -89,13 +90,15 @@ fun SparklineChart(
         val ch = size.height - bp
 
         fun valueToY(v: Float) = (1f - (v - chartMin) / range) * ch
+
         fun indexToX(i: Int) = lp + if (data.size > 1) i * (cw / (data.size - 1)) else cw / 2f
 
-        val axisStyle = TextStyle(
-            fontSize = 8.sp,
-            color = axisLabelColor,
-            fontFamily = FontFamily.Monospace,
-        )
+        val axisStyle =
+            TextStyle(
+                fontSize = 8.sp,
+                color = axisLabelColor,
+                fontFamily = FontFamily.Monospace,
+            )
 
         drawGridLines(ch, lp, gridColor)
         drawYAxisLabels(chartMax, chartMin, ch, lp, textMeasurer, axisStyle)
@@ -122,21 +125,22 @@ fun SparklineChart(
 
         touchX?.let { tx ->
             drawTooltip(
-                ctx = TooltipContext(
-                    tx = tx,
-                    data = data,
-                    dates = config.dates,
-                    label = config.label,
-                    unidad = config.unidad,
-                    color = color,
-                    surfaceColor = surfaceColor,
-                    tooltipBgColor = tooltipBgColor,
-                    tooltipTextColor = tooltipTextColor,
-                    textMeasurer = textMeasurer,
-                    lp = lp,
-                    cw = cw,
-                    ch = ch,
-                ),
+                ctx =
+                    TooltipContext(
+                        tx = tx,
+                        data = data,
+                        dates = config.dates,
+                        label = config.label,
+                        unidad = config.unidad,
+                        color = color,
+                        surfaceColor = surfaceColor,
+                        tooltipBgColor = tooltipBgColor,
+                        tooltipTextColor = tooltipTextColor,
+                        textMeasurer = textMeasurer,
+                        lp = lp,
+                        cw = cw,
+                        ch = ch,
+                    ),
                 indexToX = ::indexToX,
                 valueToY = ::valueToY,
             )
@@ -153,7 +157,11 @@ private fun formatY(v: Float): String =
         String.format(Locale.US, "%.1f", v)
     }
 
-private fun DrawScope.drawGridLines(ch: Float, lp: Float, gridColor: Color) {
+private fun DrawScope.drawGridLines(
+    ch: Float,
+    lp: Float,
+    gridColor: Color,
+) {
     val dashSoft = PathEffect.dashPathEffect(floatArrayOf(4f, 6f), 0f)
     for (i in 1..3) {
         val y = i * ch / 4
@@ -214,10 +222,11 @@ private fun DrawScope.drawReferenceLine(
         drawText(
             textMeasurer = textMeasurer,
             text = lbl,
-            topLeft = Offset(
-                size.width - lblLayout.size.width - 2.dp.toPx(),
-                (refY - lblLayout.size.height - 1.dp.toPx()).coerceAtLeast(0f),
-            ),
+            topLeft =
+                Offset(
+                    size.width - lblLayout.size.width - 2.dp.toPx(),
+                    (refY - lblLayout.size.height - 1.dp.toPx()).coerceAtLeast(0f),
+                ),
             style = refStyle,
         )
     }
@@ -238,19 +247,21 @@ private fun DrawScope.drawChartArea(
         if (index == 0) linePath.moveTo(x, y) else linePath.lineTo(x, y)
     }
 
-    val fillPath = Path().apply {
-        addPath(linePath)
-        lineTo(indexToX(data.size - 1), ch)
-        lineTo(lp, ch)
-        close()
-    }
+    val fillPath =
+        Path().apply {
+            addPath(linePath)
+            lineTo(indexToX(data.size - 1), ch)
+            lineTo(lp, ch)
+            close()
+        }
     drawPath(
         path = fillPath,
-        brush = Brush.verticalGradient(
-            colors = listOf(color.copy(alpha = 0.22f), Color.Transparent),
-            startY = 0f,
-            endY = ch,
-        ),
+        brush =
+            Brush.verticalGradient(
+                colors = listOf(color.copy(alpha = 0.22f), Color.Transparent),
+                startY = 0f,
+                endY = ch,
+            ),
         style = Fill,
     )
     drawPath(
@@ -292,18 +303,20 @@ private fun DrawScope.drawXAxisLabels(
     indexToX: (Int) -> Float,
 ) {
     val labelCount = 4
-    val indices = (0 until labelCount).map { i ->
-        (i * (data.size - 1) / (labelCount - 1)).coerceIn(0, data.size - 1)
-    }.distinct()
+    val indices =
+        (0 until labelCount).map { i ->
+            (i * (data.size - 1) / (labelCount - 1)).coerceIn(0, data.size - 1)
+        }.distinct()
 
     indices.forEach { idx ->
         val x = indexToX(idx)
         val raw = dates.getOrNull(idx) ?: return@forEach
-        val shortLabel = when {
-            axisTimeOnly && raw.length >= 5 -> raw.takeLast(5)
-            raw.length >= 16 -> "${raw.take(5)} ${raw.takeLast(5)}"
-            else -> raw
-        }
+        val shortLabel =
+            when {
+                axisTimeOnly && raw.length >= 5 -> raw.takeLast(5)
+                raw.length >= 16 -> "${raw.take(5)} ${raw.takeLast(5)}"
+                else -> raw
+            }
         val layout = textMeasurer.measure(shortLabel, axisStyle)
         val textX = (x - layout.size.width / 2f).coerceIn(lp, size.width - layout.size.width.toFloat())
         drawText(

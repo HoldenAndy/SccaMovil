@@ -194,8 +194,10 @@ fun DashboardScreen(
                                     data.ultimaLectura?.let {
                                         "La turbidez (${it.turbidez} NTU) supera el límite recomendado de " +
                                             "5.0 NTU. Revisa el sistema de filtración."
-                                    } ?: ("Uno o más parámetros están fuera de la banda recomendada. " +
-                                        "Revisa el historial y genera un análisis IA si hay imagen asociada."),
+                                    } ?: (
+                                        "Uno o más parámetros están fuera de la banda recomendada. " +
+                                            "Revisa el historial y genera un análisis IA si hay imagen asociada."
+                                    ),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -212,8 +214,9 @@ fun DashboardScreen(
                                 when {
                                     data.generandoAnalisis -> "Generando análisis IA..."
                                     data.errorGeneracion != null -> data.errorGeneracion
-                                    else -> "La última lectura no tiene imagen asociada. El análisis " +
-                                        "IA requiere una imagen del agua capturada por la cámara ESP32."
+                                    else ->
+                                        "La última lectura no tiene imagen asociada. El análisis " +
+                                            "IA requiere una imagen del agua capturada por la cámara ESP32."
                                 } ?: "",
                             style = MaterialTheme.typography.bodySmall,
                             color =
