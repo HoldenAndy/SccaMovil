@@ -41,8 +41,9 @@ fun AnalisisIAScreen(viewModel: AnalisisViewModel = hiltViewModel()) {
             item {
                 SccaPageHeader(
                     title = "Análisis de inteligencia artificial",
-                    subtitle = "Interpretación cualitativa de la calidad del agua mediante el modelo " +
-                        "Gemini Flash Lite. Latencia típica ~47 s.",
+                    subtitle =
+                        "Interpretación cualitativa de la calidad del agua mediante el modelo " +
+                            "Gemini Flash Lite. Latencia típica ~47 s.",
                     actions = {
                         TextButton(
                             onClick = viewModel::generarAnalisisUltimaLectura,
