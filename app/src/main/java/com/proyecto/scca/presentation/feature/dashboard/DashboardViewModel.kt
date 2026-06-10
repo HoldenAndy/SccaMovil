@@ -11,6 +11,7 @@ import com.proyecto.scca.core.util.FechaBackend
 import com.proyecto.scca.domain.calidad.EvaluacionLectura
 import com.proyecto.scca.domain.calidad.ParametrosCalidad
 import com.proyecto.scca.domain.model.AnalisisIa
+import com.proyecto.scca.domain.model.ImagenAgua
 import com.proyecto.scca.domain.model.Lectura
 import com.proyecto.scca.domain.model.Nodo
 import com.proyecto.scca.domain.repository.AnalisisRepository
@@ -36,6 +37,7 @@ data class DashboardData(
     val lecturasSerie: List<Lectura>,
     val sseConectado: Boolean,
     val lecturaConImagen: Boolean,
+    val imagenAgua: ImagenAgua?,
     val generandoAnalisis: Boolean,
     val errorGeneracion: String?,
     val ultimoAnalisis: AnalisisIa?,
@@ -65,6 +67,7 @@ class DashboardViewModel
         private var lecturasSerie: List<Lectura> = emptyList()
         private var sseConectado = false
         private var lecturaConImagen = false
+        private var imagenAgua: ImagenAgua? = null
         private var generandoAnalisis = false
         private var errorGeneracion: String? = null
         private var ultimoAnalisis: AnalisisIa? = null
@@ -111,8 +114,8 @@ class DashboardViewModel
                 actualizarLecturaCompleta(lectura)
             }
 
-            // Chart series (última jornada)
-            lecturaRepository.obtenerGraficos(idNodo, FechaBackend.isoHaceNDias(1), ahora).onSuccess { serie ->
+            // Chart series (últimas 2 horas)
+            lecturaRepository.obtenerGraficos(idNodo, FechaBackend.isoHaceHoras(2), ahora).onSuccess { serie ->
                 lecturasSerie = serie.takeLast(50)
                 emitirEstado()
             }
@@ -124,31 +127,34 @@ class DashboardViewModel
             sseJob =
                 viewModelScope.launch {
                     var sseOk = false
+                    var pollingIniciado = false
                     realtimeRepository.observarLecturas()
+                        .filter { it.idNodo == nodoSeleccionado?.idNodo }
                         .onEach { lectura ->
-                            if (lectura.idNodo == nodoSeleccionado?.idNodo) {
-                                sseOk = true
-                                sseConectado = true
-                                pollingJob?.cancel()
-                                lecturasSerie =
-                                    (lecturasSerie.filterNot { it.idLectura == lectura.idLectura } + lectura)
-                                        .takeLast(50)
-                                // Para lecturas en vivo, no hacemos querys pesadas (imagen, analisis)
-                                // ya que toman tiempo y la lectura acaba de ser creada.
-                                ultimaLectura = lectura
-                                emitirEstado()
-                            }
+                            sseOk = true
+                            sseConectado = true
+                            pollingJob?.cancel()
+                            lecturasSerie =
+                                (lecturasSerie.filterNot { it.idLectura == lectura.idLectura } + lectura)
+                                    .takeLast(50)
+                            ultimaLectura = lectura
                         }
+                        .debounce(80)
+                        .onEach { emitirEstado() }
                         .catch {
                             sseConectado = false
                             emitirEstado()
-                            iniciarPolling()
+                            if (!pollingIniciado) {
+                                pollingIniciado = true
+                                iniciarPolling()
+                            }
                         }
                         .launchIn(this)
 
                     // If SSE doesn't emit in 30s, fall back to polling
                     delay(Constantes.Dashboard.POLLING_MS)
-                    if (!sseOk) {
+                    if (!sseOk && !pollingIniciado) {
+                        pollingIniciado = true
                         sseConectado = false
                         iniciarPolling()
                     }
@@ -157,7 +163,9 @@ class DashboardViewModel
 
         private suspend fun actualizarLecturaCompleta(lectura: Lectura) {
             ultimaLectura = lectura
-            lecturaConImagen = imagenRepository.obtenerImagenPorLectura(lectura.idLectura).isSuccess
+            val imgResult = imagenRepository.obtenerImagenPorLectura(lectura.idLectura)
+            lecturaConImagen = imgResult.isSuccess
+            imagenAgua = imgResult.getOrNull()
             ultimoAnalisis =
                 analisisRepository.obtenerAnalisisPorLectura(lectura.idLectura)
                     .getOrNull()
@@ -193,6 +201,7 @@ class DashboardViewModel
                         lecturasSerie = lecturasSerie,
                         sseConectado = sseConectado,
                         lecturaConImagen = lecturaConImagen,
+                        imagenAgua = imagenAgua,
                         generandoAnalisis = generandoAnalisis,
                         errorGeneracion = errorGeneracion,
                         ultimoAnalisis = ultimoAnalisis,

@@ -26,7 +26,8 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
     val niveles = listOf(null, "INFO", "WARN", "ERROR")
 
     LaunchedEffect(liveTail) {
-        while (liveTail) {
+        if (!liveTail) return@LaunchedEffect
+        while (true) {
             kotlinx.coroutines.delay(5_000)
             viewModel.cargar()
         }
@@ -34,7 +35,7 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 
     Column(modifier = Modifier.fillMaxSize()) {
         SccaPageHeader(
-            title = "Registros",
+            title = "Registros del sistema",
             subtitle =
                 if (liveTail) {
                     "Eventos del sistema · auto cada 5 s."
@@ -73,7 +74,7 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
             modifier = Modifier.weight(1f),
         ) { data ->
             LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                items(data.logs) { log ->
+                items(data.logs, key = { it.idLog }, contentType = { "log" }) { log ->
                     LogEntry(log = log, modifier = Modifier.padding(horizontal = 16.dp))
                 }
             }

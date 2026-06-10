@@ -48,8 +48,9 @@ class SseClient
 
                 fun conectar() {
                     val token = sessionManager.tokenActual ?: return
-                    val url = "${BuildConfig.API_BASE_URL}$SSE_PATH?token=$token"
-                    val request = Request.Builder().url(url).build()
+                    val request = Request.Builder()
+                        .url("${BuildConfig.API_BASE_URL}$SSE_PATH?token=$token")
+                        .build()
 
                     eventSource =
                         EventSources.createFactory(okHttpClient)
@@ -66,7 +67,7 @@ class SseClient
                                             "conectado" -> trySend(SseEvento.Conectado)
                                             "lectura" -> trySend(SseEvento.Lectura(data))
                                             "ping" -> trySend(SseEvento.Ping)
-                                            else -> trySend(SseEvento.Lectura(data))
+                                            else -> Unit
                                         }
                                         backoffMs = BACKOFF_INICIAL_MS
                                     }

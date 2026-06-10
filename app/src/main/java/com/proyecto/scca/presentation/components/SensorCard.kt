@@ -41,6 +41,7 @@ fun SensorCard(
     unidad: String,
     colorSensor: Color,
     history: List<Float> = emptyList(),
+    historyDates: List<String> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val animatedProgress by animateFloatAsState(
@@ -67,7 +68,7 @@ fun SensorCard(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(14.dp),
+                    .padding(com.proyecto.scca.presentation.theme.LocalSccaDensity.current.cardPadding),
         ) {
             Column {
                 Row(
@@ -123,8 +124,12 @@ fun SensorCard(
                 Spacer(Modifier.height(6.dp))
                 SparklineChart(
                     data = history,
-                    color = nivelColor,
-                    modifier = Modifier.fillMaxWidth().height(36.dp)
+                    color = colorSensor,
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    dates = historyDates,
+                    axisTimeOnly = true,
+                    unidad = unidad,
+                    label = titulo,
                 )
                 Spacer(Modifier.height(6.dp))
                 LinearProgressIndicator(

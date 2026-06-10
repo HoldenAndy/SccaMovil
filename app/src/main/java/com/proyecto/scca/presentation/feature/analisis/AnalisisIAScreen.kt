@@ -41,8 +41,8 @@ fun AnalisisIAScreen(viewModel: AnalisisViewModel = hiltViewModel()) {
         ) {
             item {
                 SccaPageHeader(
-                    title = "Análisis IA",
-                    subtitle = "Diagnósticos generados desde lecturas e imágenes del nodo activo.",
+                    title = "Análisis de inteligencia artificial",
+                    subtitle = "Interpretación cualitativa de la calidad del agua mediante el modelo Gemini Flash Lite. Latencia típica ~47 s.",
                     actions = {
                         TextButton(
                             onClick = viewModel::generarAnalisisUltimaLectura,
@@ -104,7 +104,7 @@ fun AnalisisIAScreen(viewModel: AnalisisViewModel = hiltViewModel()) {
                 }
             }
 
-            items(data.analisisList) { analisis ->
+            items(data.analisisList, key = { it.idAnalisis }, contentType = { "analisis" }) { analisis ->
                 AnalisisCard(analisis = analisis, modifier = Modifier.padding(horizontal = 16.dp))
             }
 

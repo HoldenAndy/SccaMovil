@@ -22,7 +22,7 @@ class AuthRepositoryImpl
                 safeApiCall {
                     authApi.login(LoginRequestDto(credentials.email, credentials.password))
                 }
-            return result.toResult(onUnauthorized = { sessionManager.logout() }).map { dto ->
+            return result.toResult(onUnauthorized = { sessionManager.logout() }).mapCatching { dto ->
                 sessionManager.guardarSesion(
                     token = dto.token,
                     nombre = dto.nombre,

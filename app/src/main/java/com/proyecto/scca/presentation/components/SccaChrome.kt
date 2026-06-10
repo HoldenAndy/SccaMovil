@@ -38,7 +38,8 @@ fun SccaCard(
         shadowElevation = 0.dp,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
     ) {
-        Column(modifier = Modifier.padding(14.dp), content = content)
+        val density = com.proyecto.scca.presentation.theme.LocalSccaDensity.current
+        Column(modifier = Modifier.padding(density.cardPadding), content = content)
     }
 }
 
@@ -63,13 +64,14 @@ fun SccaPageHeader(
     modifier: Modifier = Modifier,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
+    val density = com.proyecto.scca.presentation.theme.LocalSccaDensity.current
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surfaceVariant)
                 .border(1.dp, MaterialTheme.colorScheme.outline)
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = density.rowPaddingX, vertical = density.rowPaddingY),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {

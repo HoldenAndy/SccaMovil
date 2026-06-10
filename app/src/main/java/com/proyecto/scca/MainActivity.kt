@@ -23,6 +23,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val themePref by preferenciasStore.themeFlow.collectAsState(initial = "system")
+            val densityPref by preferenciasStore.densityFlow.collectAsState(initial = "comfortable")
             val systemDark = isSystemInDarkTheme()
             val darkTheme =
                 when (themePref) {
@@ -31,7 +32,7 @@ class MainActivity : ComponentActivity() {
                     else -> systemDark
                 }
 
-            SccaTheme(darkTheme = darkTheme) {
+            SccaTheme(darkTheme = darkTheme, density = densityPref) {
                 SccaNavHost()
             }
         }

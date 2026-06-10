@@ -3,6 +3,7 @@ package com.proyecto.scca.core.network
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.proyecto.scca.BuildConfig
 import com.proyecto.scca.core.session.SessionManager
+import com.proyecto.scca.core.util.Constantes
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,6 +31,10 @@ import javax.inject.Singleton
 @Retention(AnnotationRetention.BINARY)
 annotation class SseClientQualifier
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class AnalisisClientQualifier
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -45,7 +50,7 @@ object NetworkModule {
         return HttpLoggingInterceptor().apply {
             level =
                 if (BuildConfig.DEBUG) {
-                    HttpLoggingInterceptor.Level.BODY
+                    HttpLoggingInterceptor.Level.HEADERS
                 } else {
                     HttpLoggingInterceptor.Level.NONE
                 }
@@ -94,6 +99,36 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl(BuildConfig.API_BASE_URL + "/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+    }
+
+    // --- Cliente dedicado a AnalisisApi: readTimeout extendido para llamadas a LLM ---
+    @Provides
+    @Singleton
+    @AnalisisClientQualifier
+    fun provideAnalisisOkHttpClient(
+        loggingInterceptor: HttpLoggingInterceptor,
+        authInterceptor: AuthInterceptor,
+    ): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(Constantes.Api.TIMEOUT_ANALISIS_MS, TimeUnit.MILLISECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @AnalisisClientQualifier
+    fun provideAnalisisRetrofit(
+        @AnalisisClientQualifier okHttpClient: OkHttpClient,
+    ): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL + "/")
             .client(okHttpClient)

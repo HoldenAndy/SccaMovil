@@ -19,6 +19,15 @@ class NodoRepositoryImpl
         private val nodoApi: NodoApi,
         private val sessionManager: SessionManager,
     ) : NodoRepository {
+
+        private data class MisNodosEntry(val token: String, val data: List<Nodo>, val timestamp: Long)
+
+        private var misNodosCache: MisNodosEntry? = null
+
+        companion object {
+            private const val MIS_NODOS_TTL_MS = 30_000L  // 30 segundos
+        }
+
         override suspend fun listarNodosPaginado(
             activo: Boolean?,
             pagina: Int,
@@ -30,12 +39,21 @@ class NodoRepositoryImpl
         }
 
         override suspend fun listarMisNodos(): Result<List<Nodo>> {
+            val now = System.currentTimeMillis()
+            val token = sessionManager.tokenActual ?: ""
+            misNodosCache?.let { entry ->
+                if (entry.token == token && now - entry.timestamp < MIS_NODOS_TTL_MS) {
+                    return Result.success(entry.data)
+                }
+            }
             return safeApiCall { nodoApi.misNodos() }
                 .toResult { sessionManager.logout() }
                 .map { list -> list.map { it.toDomain() } }
+                .also { result -> result.getOrNull()?.let { misNodosCache = MisNodosEntry(token, it, now) } }
         }
 
         override suspend fun crearNodo(request: CrearNodoRequest): Result<Nodo> {
+            misNodosCache = null
             return safeApiCall {
                 nodoApi.crearNodo(NodoRequestDto(request.macAddress, request.ubicacion, request.idUsuario))
             }.toResult { sessionManager.logout() }.map { it.toDomain() }
@@ -45,17 +63,20 @@ class NodoRepositoryImpl
             idNodo: Int,
             ubicacion: String,
         ): Result<Nodo> {
+            misNodosCache = null
             return safeApiCall { nodoApi.actualizarNodo(idNodo, NodoUpdateRequestDto(ubicacion)) }
                 .toResult { sessionManager.logout() }
                 .map { it.toDomain() }
         }
 
         override suspend fun activarNodo(idNodo: Int): Result<Unit> {
+            misNodosCache = null
             return safeApiCall { nodoApi.activarNodo(idNodo) }
                 .toResult { sessionManager.logout() }
         }
 
         override suspend fun desactivarNodo(idNodo: Int): Result<Unit> {
+            misNodosCache = null
             return safeApiCall { nodoApi.desactivarNodo(idNodo) }
                 .toResult { sessionManager.logout() }
         }
@@ -64,6 +85,7 @@ class NodoRepositoryImpl
             idNodo: Int,
             idNuevoUsuario: Int,
         ): Result<Nodo> {
+            misNodosCache = null
             return safeApiCall { nodoApi.transferirPropietario(idNodo, idNuevoUsuario) }
                 .toResult { sessionManager.logout() }
                 .map { it.toDomain() }

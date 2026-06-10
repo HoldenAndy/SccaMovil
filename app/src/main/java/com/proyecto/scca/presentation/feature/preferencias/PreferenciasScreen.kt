@@ -30,7 +30,10 @@ fun PreferenciasScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        SccaPageHeader(title = "Preferencias", subtitle = "Tema, cuenta y cierre de sesión.")
+        SccaPageHeader(
+            title = "Preferencias",
+            subtitle = "Configura la apariencia, densidad y comportamiento del cliente.",
+        )
 
         // Account info
         SccaCard(modifier = Modifier.padding(horizontal = 16.dp)) {

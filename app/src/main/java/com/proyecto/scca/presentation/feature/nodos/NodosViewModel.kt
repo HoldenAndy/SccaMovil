@@ -45,40 +45,45 @@ class NodosViewModel
         val actionLoading: StateFlow<Boolean> = _actionLoading.asStateFlow()
 
         private var pagina = 0
+        private var clientesCache: List<Usuario>? = null
 
         init {
             cargar()
         }
 
         fun cargar() {
-            viewModelScope.launch {
-                _uiState.value = UiState.Loading
-                nodoRepository.listarNodosPaginado(
-                    activo = _filtroActivo.value,
-                    pagina = pagina,
-                    tamanio = 20,
-                ).fold(
-                    onSuccess = { p ->
-                        val clientes =
-                            usuarioRepository.listarUsuariosPaginado(null, 0, 1000)
-                                .getOrNull()
-                                ?.contenido
-                                ?.filter { it.rol == Rol.CLIENTE && it.activo }
-                                .orEmpty()
-                        _uiState.value =
-                            UiState.Success(
-                                NodosData(
-                                    nodos = p.contenido,
-                                    clientes = clientes,
-                                    paginaActual = p.numeroPagina,
-                                    totalPaginas = p.totalPaginas,
-                                    rolActual = sessionManager.rolActual,
-                                ),
-                            )
-                    },
-                    onFailure = { _uiState.value = UiState.Error(it.message ?: "Error") },
-                )
-            }
+            viewModelScope.launch { cargarInterno() }
+        }
+
+        private suspend fun cargarInterno() {
+            _uiState.value = UiState.Loading
+            nodoRepository.listarNodosPaginado(
+                activo = _filtroActivo.value,
+                pagina = pagina,
+                tamanio = 20,
+            ).fold(
+                onSuccess = { p ->
+                    val clientes = clientesCache ?: run {
+                        usuarioRepository.listarUsuariosPaginado(null, 0, 1000)
+                            .getOrNull()
+                            ?.contenido
+                            ?.filter { it.rol == Rol.CLIENTE && it.activo }
+                            .orEmpty()
+                            .also { clientesCache = it }
+                    }
+                    _uiState.value =
+                        UiState.Success(
+                            NodosData(
+                                nodos = p.contenido,
+                                clientes = clientes,
+                                paginaActual = p.numeroPagina,
+                                totalPaginas = p.totalPaginas,
+                                rolActual = sessionManager.rolActual,
+                            ),
+                        )
+                },
+                onFailure = { _uiState.value = UiState.Error(it.message ?: "Error") },
+            )
         }
 
         fun setFiltroActivo(activo: Boolean?) {
@@ -117,16 +122,18 @@ class NodosViewModel
             viewModelScope.launch {
                 _actionLoading.value = true
                 _actionError.value = null
-                nodoRepository.crearNodo(
+                val result = nodoRepository.crearNodo(
                     CrearNodoRequest(
                         macAddress = cleanMac,
                         ubicacion = cleanUbicacion,
                         idUsuario = idUsuario,
                     ),
-                ).fold(
-                    onSuccess = { cargar() },
-                    onFailure = { _actionError.value = it.message ?: "No se pudo registrar el nodo." },
                 )
+                if (result.isSuccess) {
+                    cargarInterno()
+                } else {
+                    _actionError.value = result.exceptionOrNull()?.message ?: "No se pudo registrar el nodo."
+                }
                 _actionLoading.value = false
             }
         }
@@ -143,10 +150,12 @@ class NodosViewModel
             viewModelScope.launch {
                 _actionLoading.value = true
                 _actionError.value = null
-                nodoRepository.actualizarUbicacion(idNodo, cleanUbicacion).fold(
-                    onSuccess = { cargar() },
-                    onFailure = { _actionError.value = it.message ?: "No se pudo actualizar el nodo." },
-                )
+                val result = nodoRepository.actualizarUbicacion(idNodo, cleanUbicacion)
+                if (result.isSuccess) {
+                    cargarInterno()
+                } else {
+                    _actionError.value = result.exceptionOrNull()?.message ?: "No se pudo actualizar el nodo."
+                }
                 _actionLoading.value = false
             }
         }
@@ -162,10 +171,12 @@ class NodosViewModel
             viewModelScope.launch {
                 _actionLoading.value = true
                 _actionError.value = null
-                nodoRepository.transferirPropietario(idNodo, idNuevoUsuario).fold(
-                    onSuccess = { cargar() },
-                    onFailure = { _actionError.value = it.message ?: "No se pudo transferir el nodo." },
-                )
+                val result = nodoRepository.transferirPropietario(idNodo, idNuevoUsuario)
+                if (result.isSuccess) {
+                    cargarInterno()
+                } else {
+                    _actionError.value = result.exceptionOrNull()?.message ?: "No se pudo transferir el nodo."
+                }
                 _actionLoading.value = false
             }
         }
