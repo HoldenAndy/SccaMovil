@@ -16,16 +16,16 @@ class LecturaRepositoryImpl
         private val lecturaApi: LecturaApi,
         private val sessionManager: SessionManager,
     ) : LecturaRepository {
-
         private data class GraficosCacheKey(val idNodo: Int, val inicio: String, val fin: String)
+
         private data class CacheEntry<T>(val value: T, val timestamp: Long)
 
         private val graficosCache = mutableMapOf<GraficosCacheKey, CacheEntry<List<Lectura>>>()
         private val ultimaLecturaCache = mutableMapOf<Int, CacheEntry<Lectura>>()
 
         companion object {
-            private const val GRAFICOS_TTL_MS = 5 * 60 * 1_000L  // 5 minutos
-            private const val ULTIMA_LECTURA_TTL_MS = 10_000L     // 10 segundos
+            private const val GRAFICOS_TTL_MS = 5 * 60 * 1_000L // 5 minutos
+            private const val ULTIMA_LECTURA_TTL_MS = 10_000L // 10 segundos
         }
 
         override suspend fun obtenerUltimaLectura(idNodo: Int): Result<Lectura> {

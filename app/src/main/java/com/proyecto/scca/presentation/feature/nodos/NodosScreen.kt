@@ -33,7 +33,10 @@ fun NodosScreen(viewModel: NodosViewModel = hiltViewModel()) {
     val actionLoading by viewModel.actionLoading.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        SccaPageHeader(title = "Nodos ESP32", subtitle = "Dispositivos físicos que muestrean los parámetros del agua y reportan al servidor vía MQTT.")
+        SccaPageHeader(
+            title = "Nodos ESP32",
+            subtitle = "Dispositivos físicos que muestrean los parámetros del agua y reportan al servidor vía MQTT.",
+        )
         Spacer(Modifier.height(12.dp))
 
         // Filter chips

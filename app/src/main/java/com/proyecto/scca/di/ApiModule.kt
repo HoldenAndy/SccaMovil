@@ -1,5 +1,6 @@
 package com.proyecto.scca.di
 
+import com.proyecto.scca.core.network.AnalisisClientQualifier
 import com.proyecto.scca.data.remote.api.AnalisisApi
 import com.proyecto.scca.data.remote.api.AuthApi
 import com.proyecto.scca.data.remote.api.ImagenApi
@@ -7,7 +8,6 @@ import com.proyecto.scca.data.remote.api.LecturaApi
 import com.proyecto.scca.data.remote.api.LogApi
 import com.proyecto.scca.data.remote.api.NodoApi
 import com.proyecto.scca.data.remote.api.UsuarioApi
-import com.proyecto.scca.core.network.AnalisisClientQualifier
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,7 +32,9 @@ object ApiModule {
 
     @Provides
     @Singleton
-    fun provideAnalisisApi(@AnalisisClientQualifier retrofit: Retrofit): AnalisisApi = retrofit.create(AnalisisApi::class.java)
+    fun provideAnalisisApi(
+        @AnalisisClientQualifier retrofit: Retrofit,
+    ): AnalisisApi = retrofit.create(AnalisisApi::class.java)
 
     @Provides
     @Singleton

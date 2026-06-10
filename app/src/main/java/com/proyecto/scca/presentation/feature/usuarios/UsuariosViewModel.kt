@@ -99,14 +99,15 @@ class UsuariosViewModel
             viewModelScope.launch {
                 _actionLoading.value = true
                 _actionError.value = null
-                val result = usuarioRepository.crearUsuario(
-                    CrearUsuarioRequest(
-                        nombre = cleanNombre,
-                        email = cleanEmail,
-                        password = cleanPassword,
-                        rol = rol,
-                    ),
-                )
+                val result =
+                    usuarioRepository.crearUsuario(
+                        CrearUsuarioRequest(
+                            nombre = cleanNombre,
+                            email = cleanEmail,
+                            password = cleanPassword,
+                            rol = rol,
+                        ),
+                    )
                 if (result.isSuccess) {
                     _credencialesCreadas.value = "${result.getOrNull()?.nombre}\n${result.getOrNull()?.email}\n$cleanPassword"
                     cargarInterno()
@@ -138,10 +139,11 @@ class UsuariosViewModel
             viewModelScope.launch {
                 _actionLoading.value = true
                 _actionError.value = null
-                val result = usuarioRepository.actualizarUsuario(
-                    id,
-                    ActualizarUsuarioRequest(nombre = cleanNombre, email = cleanEmail),
-                )
+                val result =
+                    usuarioRepository.actualizarUsuario(
+                        id,
+                        ActualizarUsuarioRequest(nombre = cleanNombre, email = cleanEmail),
+                    )
                 if (result.isSuccess) {
                     cargarInterno()
                 } else {

@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Check
@@ -300,13 +300,14 @@ private fun QuickActionsSheet(
 ) {
     androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .padding(bottom = 32.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(bottom = 32.dp),
         ) {
             Text("Búsqueda y acciones rápidas", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(16.dp))
@@ -326,10 +327,10 @@ private fun QuickActionsSheet(
             Spacer(Modifier.height(16.dp))
             Text("Acciones rápidas", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.height(8.dp))
-            
+
             TextButton(
-                onClick = { onNavigate(Rutas.Dashboard.ruta) }, 
-                modifier = Modifier.fillMaxWidth()
+                onClick = { onNavigate(Rutas.Dashboard.ruta) },
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.MonitorHeart, contentDescription = null)
@@ -338,8 +339,8 @@ private fun QuickActionsSheet(
                 }
             }
             TextButton(
-                onClick = { onNavigate(Rutas.Dashboard.ruta) }, 
-                modifier = Modifier.fillMaxWidth()
+                onClick = { onNavigate(Rutas.Dashboard.ruta) },
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Filled.Analytics, contentDescription = null)

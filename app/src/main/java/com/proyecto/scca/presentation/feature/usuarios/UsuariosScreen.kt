@@ -28,7 +28,10 @@ fun UsuariosScreen(viewModel: UsuariosViewModel = hiltViewModel()) {
     val credenciales by viewModel.credencialesCreadas.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        SccaPageHeader(title = "Gestión de usuarios", subtitle = "Cuentas con acceso al sistema y sus roles asociados. Solo administradores pueden crear o modificar.")
+        SccaPageHeader(
+            title = "Gestión de usuarios",
+            subtitle = "Cuentas con acceso al sistema y sus roles asociados. Solo administradores pueden crear o modificar.",
+        )
         Spacer(Modifier.height(12.dp))
 
         Row(

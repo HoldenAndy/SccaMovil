@@ -63,9 +63,10 @@ class AnalisisViewModel
         }
 
         private suspend fun resolverNodoInicial(): Int {
-            val ultimoId = withTimeoutOrNull(3_000) {
-                preferenciasStore.ultimoNodoFlow.firstOrNull()
-            }?.toIntOrNull()
+            val ultimoId =
+                withTimeoutOrNull(3_000) {
+                    preferenciasStore.ultimoNodoFlow.firstOrNull()
+                }?.toIntOrNull()
             if (ultimoId != null) return ultimoId
             val rol = sessionManager.rolActual ?: return -1
             val nodos = obtenerNodosUseCase(rol).getOrNull().orEmpty()
@@ -74,7 +75,10 @@ class AnalisisViewModel
             return nodo?.idNodo ?: -1
         }
 
-        fun setRango(nuevoInicio: String, nuevoFin: String) {
+        fun setRango(
+            nuevoInicio: String,
+            nuevoFin: String,
+        ) {
             _inicio.value = nuevoInicio
             _fin.value = nuevoFin
             pagina = 0

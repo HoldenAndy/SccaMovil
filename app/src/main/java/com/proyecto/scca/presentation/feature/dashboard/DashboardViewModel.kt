@@ -177,7 +177,7 @@ class DashboardViewModel
             pollingJob =
                 viewModelScope.launch {
                     while (isActive) {
-                        nodoSeleccionado?.let { 
+                        nodoSeleccionado?.let {
                             lecturaRepository.obtenerUltimaLectura(it.idNodo).onSuccess { lectura ->
                                 if (lectura.idLectura != ultimaLectura?.idLectura) {
                                     actualizarLecturaCompleta(lectura)

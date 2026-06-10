@@ -60,9 +60,10 @@ class HistorialViewModel
         }
 
         private suspend fun resolverNodoInicial(): Int {
-            val ultimoId = withTimeoutOrNull(3_000) {
-                preferenciasStore.ultimoNodoFlow.firstOrNull()
-            }?.toIntOrNull()
+            val ultimoId =
+                withTimeoutOrNull(3_000) {
+                    preferenciasStore.ultimoNodoFlow.firstOrNull()
+                }?.toIntOrNull()
             if (ultimoId != null) return ultimoId
             val rol = sessionManager.rolActual ?: return -1
             val nodos = obtenerNodosUseCase(rol).getOrNull().orEmpty()
@@ -90,24 +91,26 @@ class HistorialViewModel
             if (idNodoActual < 0) return
             viewModelScope.launch {
                 _uiState.value = UiState.Loading
-                val tablaDeferred = async {
-                    lecturaRepository.obtenerLecturasPaginado(
-                        idNodo = idNodoActual,
-                        inicio = _inicio.value,
-                        fin = _fin.value,
-                        pagina = _pagina.value,
-                        tamanio = Paginacion.TABLE_PAGE_SIZE,
-                        sortBy = "fechaHora",
-                        sortDir = "desc",
-                    )
-                }
-                val graficosDeferred = async {
-                    lecturaRepository.obtenerGraficos(
-                        idNodo = idNodoActual,
-                        inicio = _inicio.value,
-                        fin = _fin.value,
-                    )
-                }
+                val tablaDeferred =
+                    async {
+                        lecturaRepository.obtenerLecturasPaginado(
+                            idNodo = idNodoActual,
+                            inicio = _inicio.value,
+                            fin = _fin.value,
+                            pagina = _pagina.value,
+                            tamanio = Paginacion.TABLE_PAGE_SIZE,
+                            sortBy = "fechaHora",
+                            sortDir = "desc",
+                        )
+                    }
+                val graficosDeferred =
+                    async {
+                        lecturaRepository.obtenerGraficos(
+                            idNodo = idNodoActual,
+                            inicio = _inicio.value,
+                            fin = _fin.value,
+                        )
+                    }
                 val tablaResult = tablaDeferred.await()
                 val graficos = graficosDeferred.await().getOrNull().orEmpty()
                 tablaResult.fold(

@@ -63,14 +63,15 @@ class NodosViewModel
                 tamanio = 20,
             ).fold(
                 onSuccess = { p ->
-                    val clientes = clientesCache ?: run {
-                        usuarioRepository.listarUsuariosPaginado(null, 0, 1000)
-                            .getOrNull()
-                            ?.contenido
-                            ?.filter { it.rol == Rol.CLIENTE && it.activo }
-                            .orEmpty()
-                            .also { clientesCache = it }
-                    }
+                    val clientes =
+                        clientesCache ?: run {
+                            usuarioRepository.listarUsuariosPaginado(null, 0, 1000)
+                                .getOrNull()
+                                ?.contenido
+                                ?.filter { it.rol == Rol.CLIENTE && it.activo }
+                                .orEmpty()
+                                .also { clientesCache = it }
+                        }
                     _uiState.value =
                         UiState.Success(
                             NodosData(
@@ -122,13 +123,14 @@ class NodosViewModel
             viewModelScope.launch {
                 _actionLoading.value = true
                 _actionError.value = null
-                val result = nodoRepository.crearNodo(
-                    CrearNodoRequest(
-                        macAddress = cleanMac,
-                        ubicacion = cleanUbicacion,
-                        idUsuario = idUsuario,
-                    ),
-                )
+                val result =
+                    nodoRepository.crearNodo(
+                        CrearNodoRequest(
+                            macAddress = cleanMac,
+                            ubicacion = cleanUbicacion,
+                            idUsuario = idUsuario,
+                        ),
+                    )
                 if (result.isSuccess) {
                     cargarInterno()
                 } else {

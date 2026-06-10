@@ -121,21 +121,24 @@ fun HistorialScreen(viewModel: HistorialViewModel = hiltViewModel()) {
 
 private enum class PresetRango { HOY, SIETE_DIAS, TREINTA_DIAS, PERSONALIZADO }
 
-private fun isoToDisplayDate(iso: String): String = runCatching {
-    val date = iso.substringBefore("T")
-    val (a, m, d) = date.split("-")
-    "$d/$m/$a"
-}.getOrDefault(iso)
+private fun isoToDisplayDate(iso: String): String =
+    runCatching {
+        val date = iso.substringBefore("T")
+        val (a, m, d) = date.split("-")
+        "$d/$m/$a"
+    }.getOrDefault(iso)
 
-private fun displayDateToIsoStart(display: String): String = runCatching {
-    val (d, m, a) = display.trim().split("/")
-    "$a-$m-${d}T00:00:00"
-}.getOrDefault(display)
+private fun displayDateToIsoStart(display: String): String =
+    runCatching {
+        val (d, m, a) = display.trim().split("/")
+        "$a-$m-${d}T00:00:00"
+    }.getOrDefault(display)
 
-private fun displayDateToIsoEnd(display: String): String = runCatching {
-    val (d, m, a) = display.trim().split("/")
-    "$a-$m-${d}T23:59:59"
-}.getOrDefault(display)
+private fun displayDateToIsoEnd(display: String): String =
+    runCatching {
+        val (d, m, a) = display.trim().split("/")
+        "$a-$m-${d}T23:59:59"
+    }.getOrDefault(display)
 
 @Composable
 fun RangoHistorialCard(
@@ -148,25 +151,29 @@ fun RangoHistorialCard(
     var preset by remember(inicio, fin) {
         val iniDate = inicio.substringBefore("T")
         val finDate = fin.substringBefore("T")
-        val presetValue = if (fin.endsWith("T23:59:59") && inicio.endsWith("T00:00:00") && finDate == today) {
-            when (iniDate) {
-                FechaBackend.isoHaceNDias(0).substringBefore("T") -> PresetRango.HOY
-                FechaBackend.isoHaceNDias(7).substringBefore("T") -> PresetRango.SIETE_DIAS
-                FechaBackend.isoHaceNDias(30).substringBefore("T") -> PresetRango.TREINTA_DIAS
-                else -> PresetRango.PERSONALIZADO
+        val presetValue =
+            if (fin.endsWith("T23:59:59") && inicio.endsWith("T00:00:00") && finDate == today) {
+                when (iniDate) {
+                    FechaBackend.isoHaceNDias(0).substringBefore("T") -> PresetRango.HOY
+                    FechaBackend.isoHaceNDias(7).substringBefore("T") -> PresetRango.SIETE_DIAS
+                    FechaBackend.isoHaceNDias(30).substringBefore("T") -> PresetRango.TREINTA_DIAS
+                    else -> PresetRango.PERSONALIZADO
+                }
+            } else {
+                PresetRango.PERSONALIZADO
             }
-        } else PresetRango.PERSONALIZADO
         mutableStateOf(presetValue)
     }
     var inicioDisplay by remember(inicio) { mutableStateOf(isoToDisplayDate(inicio)) }
     var finDisplay by remember(fin) { mutableStateOf(isoToDisplayDate(fin)) }
 
-    val presets = listOf(
-        PresetRango.HOY to "Hoy",
-        PresetRango.SIETE_DIAS to "7 días",
-        PresetRango.TREINTA_DIAS to "30 días",
-        PresetRango.PERSONALIZADO to "Personalizado",
-    )
+    val presets =
+        listOf(
+            PresetRango.HOY to "Hoy",
+            PresetRango.SIETE_DIAS to "7 días",
+            PresetRango.TREINTA_DIAS to "30 días",
+            PresetRango.PERSONALIZADO to "Personalizado",
+        )
 
     SccaCard(modifier = modifier) {
         // Fila 1: icono + label + chips de presets
@@ -198,11 +205,12 @@ fun RangoHistorialCard(
                         onClick = {
                             preset = p
                             if (p != PresetRango.PERSONALIZADO) {
-                                val i = when (p) {
-                                    PresetRango.HOY -> FechaBackend.isoHaceNDias(0)
-                                    PresetRango.SIETE_DIAS -> FechaBackend.isoHaceNDias(7)
-                                    else -> FechaBackend.isoHaceNDias(30)
-                                }
+                                val i =
+                                    when (p) {
+                                        PresetRango.HOY -> FechaBackend.isoHaceNDias(0)
+                                        PresetRango.SIETE_DIAS -> FechaBackend.isoHaceNDias(7)
+                                        else -> FechaBackend.isoHaceNDias(30)
+                                    }
                                 val f = FechaBackend.isoHoy()
                                 inicioDisplay = isoToDisplayDate(i)
                                 finDisplay = isoToDisplayDate(f)
@@ -211,12 +219,13 @@ fun RangoHistorialCard(
                         },
                         label = { Text(label, style = MaterialTheme.typography.labelSmall) },
                         shape = MaterialTheme.shapes.small,
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = preset == p,
-                            borderColor = MaterialTheme.colorScheme.outline,
-                            selectedBorderColor = MaterialTheme.colorScheme.primary,
-                        ),
+                        border =
+                            FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = preset == p,
+                                borderColor = MaterialTheme.colorScheme.outline,
+                                selectedBorderColor = MaterialTheme.colorScheme.primary,
+                            ),
                     )
                 }
             }
@@ -232,7 +241,10 @@ fun RangoHistorialCard(
         ) {
             OutlinedTextField(
                 value = inicioDisplay,
-                onValueChange = { inicioDisplay = it; preset = PresetRango.PERSONALIZADO },
+                onValueChange = {
+                    inicioDisplay = it
+                    preset = PresetRango.PERSONALIZADO
+                },
                 label = { Text("Desde") },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
@@ -245,7 +257,10 @@ fun RangoHistorialCard(
             )
             OutlinedTextField(
                 value = finDisplay,
-                onValueChange = { finDisplay = it; preset = PresetRango.PERSONALIZADO },
+                onValueChange = {
+                    finDisplay = it
+                    preset = PresetRango.PERSONALIZADO
+                },
                 label = { Text("Hasta") },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
@@ -315,40 +330,79 @@ private data class GraficoAtributo(
 )
 
 @Composable
-private fun GraficosPorAtributo(graficos: List<Lectura>, modifier: Modifier = Modifier) {
+private fun GraficosPorAtributo(
+    graficos: List<Lectura>,
+    modifier: Modifier = Modifier,
+) {
     val sorted = remember(graficos) { graficos.sortedBy { it.fechaHora } }
     val dates = remember(sorted) { sorted.map { FechaBackend.formatFechaTabla(it.fechaHora) } }
 
-    val atributos = remember {
-        listOf(
-            GraficoAtributo("pH", "", PhColor, 6.5f, 8.5f, 7f, "Neutro",
-                { it.ph.toFloat() }) { v -> ParametrosCalidad.evaluarPh(v.toDouble()) != NivelCalidad.NORMAL },
-            GraficoAtributo("Temperatura", "°C", TempColor, 15f, 35f, null, null,
-                { it.temperatura.toFloat() }) { v -> ParametrosCalidad.evaluarTemperatura(v.toDouble()) != NivelCalidad.NORMAL },
-            GraficoAtributo("Turbidez", "NTU", TurbColor, 0f, 5f, 5f, "Límite máx.",
-                { it.turbidez.toFloat() }) { v -> ParametrosCalidad.evaluarTurbidez(v.toDouble()) != NivelCalidad.NORMAL },
-            GraficoAtributo("TDS", "ppm", TdsColor, 0f, 600f, 500f, "Límite",
-                { it.tds.toFloat() }) { v -> ParametrosCalidad.evaluarTds(v.toDouble()) != NivelCalidad.NORMAL },
-        )
-    }
+    val atributos =
+        remember {
+            listOf(
+                GraficoAtributo(
+                    "pH",
+                    "",
+                    PhColor,
+                    6.5f,
+                    8.5f,
+                    7f,
+                    "Neutro",
+                    { it.ph.toFloat() },
+                ) { v -> ParametrosCalidad.evaluarPh(v.toDouble()) != NivelCalidad.NORMAL },
+                GraficoAtributo(
+                    "Temperatura",
+                    "°C",
+                    TempColor,
+                    15f,
+                    35f,
+                    null,
+                    null,
+                    { it.temperatura.toFloat() },
+                ) { v -> ParametrosCalidad.evaluarTemperatura(v.toDouble()) != NivelCalidad.NORMAL },
+                GraficoAtributo(
+                    "Turbidez",
+                    "NTU",
+                    TurbColor,
+                    0f,
+                    5f,
+                    5f,
+                    "Límite máx.",
+                    { it.turbidez.toFloat() },
+                ) { v -> ParametrosCalidad.evaluarTurbidez(v.toDouble()) != NivelCalidad.NORMAL },
+                GraficoAtributo(
+                    "TDS",
+                    "ppm",
+                    TdsColor,
+                    0f,
+                    600f,
+                    500f,
+                    "Límite",
+                    { it.tds.toFloat() },
+                ) { v -> ParametrosCalidad.evaluarTds(v.toDouble()) != NivelCalidad.NORMAL },
+            )
+        }
 
     val allValues = remember(sorted) { atributos.map { attr -> sorted.map(attr.valor) } }
-    val allStats = remember(allValues) {
-        allValues.map { values ->
-            if (values.isEmpty()) Triple("—", "—", "—")
-            else {
-                fun fmt(v: Float) = if (v >= 100f) String.format(Locale.US, "%.0f", v) else String.format(Locale.US, "%.2f", v)
-                Triple(
-                    fmt(values.minOrNull() ?: 0f),
-                    fmt(values.average().toFloat()),
-                    fmt(values.maxOrNull() ?: 0f),
-                )
+    val allStats =
+        remember(allValues) {
+            allValues.map { values ->
+                if (values.isEmpty()) {
+                    Triple("—", "—", "—")
+                } else {
+                    fun fmt(v: Float) = if (v >= 100f) String.format(Locale.US, "%.0f", v) else String.format(Locale.US, "%.2f", v)
+                    Triple(
+                        fmt(values.minOrNull() ?: 0f),
+                        fmt(values.average().toFloat()),
+                        fmt(values.maxOrNull() ?: 0f),
+                    )
+                }
             }
         }
-    }
-    val allAlertCounts = remember(allValues) {
-        atributos.zip(allValues).map { (attr, values) -> values.count { attr.isAlert(it) } }
-    }
+    val allAlertCounts =
+        remember(allValues) {
+            atributos.zip(allValues).map { (attr, values) -> values.count { attr.isAlert(it) } }
+        }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         atributos.forEachIndexed { i, attr ->
@@ -357,22 +411,23 @@ private fun GraficosPorAtributo(graficos: List<Lectura>, modifier: Modifier = Mo
             val alertCount = allAlertCounts[i]
 
             SccaCard(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(8.dp).clip(CircleShape).background(attr.color))
-                            Spacer(Modifier.width(8.dp))
-                            Column {
-                                Text(
-                                    text = if (attr.unidad.isBlank()) attr.label else "${attr.label} (${attr.unidad})",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = attr.color,
-                                )
-                                val rangeText = buildString {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(8.dp).clip(CircleShape).background(attr.color))
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = if (attr.unidad.isBlank()) attr.label else "${attr.label} (${attr.unidad})",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = attr.color,
+                            )
+                            val rangeText =
+                                buildString {
                                     append(formatAxisVal(attr.min))
                                     if (attr.unidad.isNotBlank()) append(" ${attr.unidad}")
                                     append(" – ")
@@ -380,58 +435,63 @@ private fun GraficosPorAtributo(graficos: List<Lectura>, modifier: Modifier = Mo
                                     if (attr.unidad.isNotBlank()) append(" ${attr.unidad}")
                                     if (alertCount > 0) append(" · $alertCount avisos")
                                 }
-                                Text(
-                                    text = rangeText,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            listOf("MÍN" to stats.first, "PROM" to stats.second, "MÁX" to stats.third)
-                                .forEach { (lbl, v) ->
-                                    Column(horizontalAlignment = Alignment.End) {
-                                        Text(
-                                            text = lbl,
-                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            letterSpacing = 0.5.sp,
-                                        )
-                                        Text(
-                                            text = v,
-                                            style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                        )
-                                    }
-                                }
+                            Text(
+                                text = rangeText,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
-                    Spacer(Modifier.height(12.dp))
-                    SparklineChart(
-                        data = values,
-                        color = attr.color,
-                        unidad = attr.unidad,
-                        label = attr.label,
-                        dates = dates,
-                        minVal = attr.min,
-                        maxVal = attr.max,
-                        refLine = attr.refLine,
-                        refLabel = attr.refLabel,
-                        isAlert = attr.isAlert,
-                        modifier = Modifier
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        listOf("MÍN" to stats.first, "PROM" to stats.second, "MÁX" to stats.third)
+                            .forEach { (lbl, v) ->
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        text = lbl,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        letterSpacing = 0.5.sp,
+                                    )
+                                    Text(
+                                        text = v,
+                                        style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                }
+                            }
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                SparklineChart(
+                    data = values,
+                    color = attr.color,
+                    unidad = attr.unidad,
+                    label = attr.label,
+                    dates = dates,
+                    minVal = attr.min,
+                    maxVal = attr.max,
+                    refLine = attr.refLine,
+                    refLabel = attr.refLabel,
+                    isAlert = attr.isAlert,
+                    modifier =
+                        Modifier
                             .fillMaxWidth()
                             .height(160.dp),
-                    )
+                )
             }
         }
     }
 }
 
 private fun formatAxisVal(v: Float): String =
-    if (v >= 100f) String.format(Locale.US, "%.0f", v)
-    else if (v % 1f == 0f) String.format(Locale.US, "%.0f", v)
-    else String.format(Locale.US, "%.1f", v)
+    if (v >= 100f) {
+        String.format(Locale.US, "%.0f", v)
+    } else if (v % 1f == 0f) {
+        String.format(Locale.US, "%.0f", v)
+    } else {
+        String.format(Locale.US, "%.1f", v)
+    }
 
 private fun compartirCsv(
     context: android.content.Context,
@@ -451,11 +511,12 @@ private fun compartirCsv(
     val csvDir = java.io.File(context.cacheDir, "csv").also { it.mkdirs() }
     val csvFile = java.io.File(csvDir, "historial-scca.csv")
     csvFile.writeText("$header\n$rows")
-    val uri = androidx.core.content.FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.provider",
-        csvFile,
-    )
+    val uri =
+        androidx.core.content.FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.provider",
+            csvFile,
+        )
     val intent =
         Intent(Intent.ACTION_SEND).apply {
             type = "text/csv"

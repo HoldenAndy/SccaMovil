@@ -48,9 +48,10 @@ class SseClient
 
                 fun conectar() {
                     val token = sessionManager.tokenActual ?: return
-                    val request = Request.Builder()
-                        .url("${BuildConfig.API_BASE_URL}$SSE_PATH?token=$token")
-                        .build()
+                    val request =
+                        Request.Builder()
+                            .url("${BuildConfig.API_BASE_URL}$SSE_PATH?token=$token")
+                            .build()
 
                     eventSource =
                         EventSources.createFactory(okHttpClient)

@@ -190,9 +190,10 @@ fun DashboardScreen(
                                 color = if (critical) StatusCritical else StatusWarning,
                             )
                             Text(
-                                text = data.ultimaLectura?.let {
-                                    "La turbidez (${it.turbidez} NTU) supera el límite recomendado de 5.0 NTU. Revisa el sistema de filtración."
-                                } ?: "Uno o más parámetros están fuera de la banda recomendada. Revisa el historial y genera un análisis IA si hay imagen asociada.",
+                                text =
+                                    data.ultimaLectura?.let {
+                                        "La turbidez (${it.turbidez} NTU) supera el límite recomendado de 5.0 NTU. Revisa el sistema de filtración."
+                                    } ?: "Uno o más parámetros están fuera de la banda recomendada. Revisa el historial y genera un análisis IA si hay imagen asociada.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -391,26 +392,28 @@ private fun CameraPanel(
             contentAlignment = Alignment.Center,
         ) {
             if (imagenAgua != null) {
-                val fullUrl = remember(imagenAgua.rutaArchivo) {
-                    if (imagenAgua.rutaArchivo.startsWith("http")) {
-                        imagenAgua.rutaArchivo
-                    } else {
-                        val baseUrl = com.proyecto.scca.BuildConfig.API_BASE_URL.removeSuffix("/")
-                        val path = if (imagenAgua.rutaArchivo.startsWith("/")) imagenAgua.rutaArchivo else "/${imagenAgua.rutaArchivo}"
-                        "$baseUrl$path"
+                val fullUrl =
+                    remember(imagenAgua.rutaArchivo) {
+                        if (imagenAgua.rutaArchivo.startsWith("http")) {
+                            imagenAgua.rutaArchivo
+                        } else {
+                            val baseUrl = com.proyecto.scca.BuildConfig.API_BASE_URL.removeSuffix("/")
+                            val path = if (imagenAgua.rutaArchivo.startsWith("/")) imagenAgua.rutaArchivo else "/${imagenAgua.rutaArchivo}"
+                            "$baseUrl$path"
+                        }
                     }
-                }
                 val context = LocalContext.current
                 coil.compose.AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(fullUrl)
-                        .crossfade(true)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .memoryCachePolicy(CachePolicy.ENABLED)
-                        .build(),
+                    model =
+                        ImageRequest.Builder(context)
+                            .data(fullUrl)
+                            .crossfade(true)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
+                            .build(),
                     contentDescription = "Imagen del agua",
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                 )
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
