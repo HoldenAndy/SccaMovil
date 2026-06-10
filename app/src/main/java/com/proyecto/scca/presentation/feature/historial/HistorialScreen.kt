@@ -30,6 +30,7 @@ import com.proyecto.scca.domain.model.Lectura
 import com.proyecto.scca.presentation.components.SccaCard
 import com.proyecto.scca.presentation.components.SccaPageHeader
 import com.proyecto.scca.presentation.components.SparklineChart
+import com.proyecto.scca.presentation.components.SparklineChartConfig
 import com.proyecto.scca.presentation.components.StateContent
 import com.proyecto.scca.presentation.theme.PhColor
 import com.proyecto.scca.presentation.theme.TdsColor
