@@ -11,7 +11,7 @@ fun UsuarioDto.toDomain(): Usuario {
         idUsuario = idUsuario,
         nombre = nombre,
         email = email,
-        rol = Rol.valueOf(rol),
+        rol = runCatching { Rol.valueOf(rol) }.getOrElse { Rol.CLIENTE },
         activo = activo,
     )
 }

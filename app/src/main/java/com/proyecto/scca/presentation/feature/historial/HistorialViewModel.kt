@@ -11,12 +11,15 @@ import com.proyecto.scca.domain.repository.LecturaRepository
 import com.proyecto.scca.domain.usecase.ObtenerNodosUseCase
 import com.proyecto.scca.presentation.components.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 data class HistorialData(
     val lecturas: List<Lectura>,
+    val graficos: List<Lectura>,
     val paginaActual: Int,
     val totalPaginas: Int,
     val totalElementos: Long,
@@ -57,7 +60,9 @@ class HistorialViewModel
         }
 
         private suspend fun resolverNodoInicial(): Int {
-            val ultimoId = preferenciasStore.ultimoNodoFlow.firstOrNull()?.toIntOrNull()
+            val ultimoId = withTimeoutOrNull(3_000) {
+                preferenciasStore.ultimoNodoFlow.firstOrNull()
+            }?.toIntOrNull()
             if (ultimoId != null) return ultimoId
             val rol = sessionManager.rolActual ?: return -1
             val nodos = obtenerNodosUseCase(rol).getOrNull().orEmpty()
@@ -85,15 +90,27 @@ class HistorialViewModel
             if (idNodoActual < 0) return
             viewModelScope.launch {
                 _uiState.value = UiState.Loading
-                lecturaRepository.obtenerLecturasPaginado(
-                    idNodo = idNodoActual,
-                    inicio = _inicio.value,
-                    fin = _fin.value,
-                    pagina = _pagina.value,
-                    tamanio = Paginacion.TABLE_PAGE_SIZE,
-                    sortBy = "fechaHora",
-                    sortDir = "desc",
-                ).fold(
+                val tablaDeferred = async {
+                    lecturaRepository.obtenerLecturasPaginado(
+                        idNodo = idNodoActual,
+                        inicio = _inicio.value,
+                        fin = _fin.value,
+                        pagina = _pagina.value,
+                        tamanio = Paginacion.TABLE_PAGE_SIZE,
+                        sortBy = "fechaHora",
+                        sortDir = "desc",
+                    )
+                }
+                val graficosDeferred = async {
+                    lecturaRepository.obtenerGraficos(
+                        idNodo = idNodoActual,
+                        inicio = _inicio.value,
+                        fin = _fin.value,
+                    )
+                }
+                val tablaResult = tablaDeferred.await()
+                val graficos = graficosDeferred.await().getOrNull().orEmpty()
+                tablaResult.fold(
                     onSuccess = { pagina ->
                         if (pagina.contenido.isEmpty()) {
                             _uiState.value = UiState.Empty
@@ -102,6 +119,7 @@ class HistorialViewModel
                                 UiState.Success(
                                     HistorialData(
                                         lecturas = pagina.contenido,
+                                        graficos = graficos,
                                         paginaActual = pagina.numeroPagina,
                                         totalPaginas = pagina.totalPaginas,
                                         totalElementos = pagina.totalElementos,

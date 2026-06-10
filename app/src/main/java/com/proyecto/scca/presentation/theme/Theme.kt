@@ -12,6 +12,8 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -61,16 +63,40 @@ val LightColorScheme =
 
 val SccaShapes =
     Shapes(
-        extraSmall = RoundedCornerShape(2.dp),
+        extraSmall = RoundedCornerShape(4.dp),
         small = RoundedCornerShape(4.dp),
         medium = RoundedCornerShape(4.dp),
-        large = RoundedCornerShape(6.dp),
-        extraLarge = RoundedCornerShape(8.dp),
+        large = RoundedCornerShape(4.dp),
+        extraLarge = RoundedCornerShape(4.dp),
     )
+
+data class SccaDensityTokens(
+    val rowPaddingY: androidx.compose.ui.unit.Dp,
+    val rowPaddingX: androidx.compose.ui.unit.Dp,
+    val cardPadding: androidx.compose.ui.unit.Dp,
+    val sectionGap: androidx.compose.ui.unit.Dp,
+)
+
+val NormalDensity = SccaDensityTokens(
+    rowPaddingY = 12.dp,
+    rowPaddingX = 16.dp,
+    cardPadding = 18.dp,
+    sectionGap = 22.dp,
+)
+
+val CompactDensity = SccaDensityTokens(
+    rowPaddingY = 8.dp,
+    rowPaddingX = 12.dp,
+    cardPadding = 14.dp,
+    sectionGap = 16.dp,
+)
+
+val LocalSccaDensity = staticCompositionLocalOf { NormalDensity }
 
 @Composable
 fun SccaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    density: String = "comfortable",
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
@@ -93,12 +119,16 @@ fun SccaTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = SccaTypography,
-        shapes = SccaShapes,
-        content = content,
-    )
+    val densityTokens = if (density == "compact") CompactDensity else NormalDensity
+
+    CompositionLocalProvider(LocalSccaDensity provides densityTokens) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = SccaTypography,
+            shapes = SccaShapes,
+            content = content,
+        )
+    }
 }
 
 // Extension helpers for sensor colors

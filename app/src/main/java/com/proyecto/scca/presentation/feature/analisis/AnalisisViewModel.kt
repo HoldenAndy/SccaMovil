@@ -14,6 +14,7 @@ import com.proyecto.scca.presentation.components.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 data class AnalisisData(
@@ -62,7 +63,9 @@ class AnalisisViewModel
         }
 
         private suspend fun resolverNodoInicial(): Int {
-            val ultimoId = preferenciasStore.ultimoNodoFlow.firstOrNull()?.toIntOrNull()
+            val ultimoId = withTimeoutOrNull(3_000) {
+                preferenciasStore.ultimoNodoFlow.firstOrNull()
+            }?.toIntOrNull()
             if (ultimoId != null) return ultimoId
             val rol = sessionManager.rolActual ?: return -1
             val nodos = obtenerNodosUseCase(rol).getOrNull().orEmpty()

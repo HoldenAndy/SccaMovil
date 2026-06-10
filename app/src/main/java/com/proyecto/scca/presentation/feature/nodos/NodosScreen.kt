@@ -33,7 +33,7 @@ fun NodosScreen(viewModel: NodosViewModel = hiltViewModel()) {
     val actionLoading by viewModel.actionLoading.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        SccaPageHeader(title = "Nodos", subtitle = "Dispositivos IoT registrados y estado de conexión.")
+        SccaPageHeader(title = "Nodos ESP32", subtitle = "Dispositivos físicos que muestrean los parámetros del agua y reportan al servidor vía MQTT.")
         Spacer(Modifier.height(12.dp))
 
         // Filter chips
@@ -64,8 +64,8 @@ fun NodosScreen(viewModel: NodosViewModel = hiltViewModel()) {
             onRetry = viewModel::cargar,
             modifier = Modifier.weight(1f),
         ) { data ->
-            val conectados = data.nodos.count { it.estadoConexion }
-            val desconectados = data.nodos.size - conectados
+            val conectados = remember(data.nodos) { data.nodos.count { it.estadoConexion } }
+            val desconectados = remember(data.nodos) { data.nodos.size - conectados }
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 item {
@@ -87,7 +87,7 @@ fun NodosScreen(viewModel: NodosViewModel = hiltViewModel()) {
                         )
                     }
                 }
-                items(data.nodos) { nodo ->
+                items(data.nodos, key = { it.idNodo }, contentType = { "nodo_item" }) { nodo ->
                     NodoCard(
                         nodo = nodo,
                         rol = data.rolActual,

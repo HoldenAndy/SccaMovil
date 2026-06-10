@@ -44,13 +44,18 @@ class SessionManager
             )
         } catch (e: Exception) {
             context.deleteSharedPreferences(PREF_FILE)
-            EncryptedSharedPreferences.create(
-                context,
-                PREF_FILE,
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-            )
+            try {
+                EncryptedSharedPreferences.create(
+                    context,
+                    PREF_FILE,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+                )
+            } catch (e2: Exception) {
+                // KeyStore irrecuperable: fallback a prefs sin cifrado para no crashear la app
+                context.getSharedPreferences(PREF_FILE + "_plain", android.content.Context.MODE_PRIVATE)
+            }
         }
 
         private val _tokenFlow = MutableStateFlow<String?>(prefs.getString(KEY_TOKEN, null))

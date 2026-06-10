@@ -19,9 +19,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.proyecto.scca.core.util.FechaBackend
 import com.proyecto.scca.domain.calidad.NivelCalidad
 import com.proyecto.scca.domain.model.AnalisisIa
@@ -59,18 +62,19 @@ fun DashboardScreen(
             GeneratingAnalysisDialog(lectura = data.ultimaLectura)
         }
 
+        val density = com.proyecto.scca.presentation.theme.LocalSccaDensity.current
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(density.sectionGap),
+            contentPadding = PaddingValues(bottom = density.cardPadding),
         ) {
             item {
                 SccaPageHeader(
                     title = "Panel de control",
                     subtitle =
                         data.ultimaLectura?.let {
-                            "Monitoreo del nodo activo · última lectura ${FechaBackend.formatHora(it.fechaHora)}"
-                        } ?: "Monitoreo en tiempo real del nodo activo",
+                            "Monitoreo en tiempo real del nodo activo · última lectura a las ${FechaBackend.formatHora(it.fechaHora)}."
+                        } ?: "Monitoreo en tiempo real del nodo activo.",
                     actions = {
                         IconButton(
                             onClick = viewModel::generarAnalisisActual,
@@ -91,7 +95,7 @@ fun DashboardScreen(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        items(data.nodos) { nodo ->
+                        items(data.nodos, key = { it.idNodo }, contentType = { "nodo_chip" }) { nodo ->
                             FilterChip(
                                 selected = nodo.idNodo == data.nodoSeleccionado?.idNodo,
                                 onClick = { viewModel.seleccionarNodo(nodo) },
@@ -180,15 +184,15 @@ fun DashboardScreen(
                         Spacer(Modifier.width(10.dp))
                         Column {
                             Text(
-                                text = if (critical) "Alerta crítica de calidad" else "Aviso de calidad",
+                                text = if (critical) "Alerta crítica de calidad" else "Aviso de calidad — turbidez fuera de banda",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (critical) StatusCritical else StatusWarning,
                             )
                             Text(
-                                text =
-                                    "Uno o más parámetros están fuera de la banda recomendada. " +
-                                        "Revisa el historial y genera un análisis IA si hay imagen asociada.",
+                                text = data.ultimaLectura?.let {
+                                    "La turbidez (${it.turbidez} NTU) supera el límite recomendado de 5.0 NTU. Revisa el sistema de filtración."
+                                } ?: "Uno o más parámetros están fuera de la banda recomendada. Revisa el historial y genera un análisis IA si hay imagen asociada.",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -205,7 +209,7 @@ fun DashboardScreen(
                                 when {
                                     data.generandoAnalisis -> "Generando análisis IA..."
                                     data.errorGeneracion != null -> data.errorGeneracion
-                                    else -> "La última lectura no tiene imagen asociada."
+                                    else -> "La última lectura no tiene imagen asociada. El análisis IA requiere una imagen del agua capturada por la cámara ESP32."
                                 } ?: "",
                             style = MaterialTheme.typography.bodySmall,
                             color =
@@ -228,6 +232,7 @@ fun DashboardScreen(
                     CameraPanel(
                         nodo = data.nodoSeleccionado,
                         ultimaLectura = data.ultimaLectura,
+                        imagenAgua = data.imagenAgua,
                     )
                 }
             }
@@ -246,6 +251,7 @@ fun DashboardScreen(
                                 unidad = "",
                                 colorSensor = PhColor,
                                 history = data.lecturasSerie.map { it.ph.toFloat() },
+                                historyDates = data.lecturasSerie.map { FechaBackend.formatFechaTabla(it.fechaHora) },
                                 modifier = Modifier.weight(1f),
                             )
                             SensorCard(
@@ -254,6 +260,7 @@ fun DashboardScreen(
                                 unidad = "°C",
                                 colorSensor = TempColor,
                                 history = data.lecturasSerie.map { it.temperatura.toFloat() },
+                                historyDates = data.lecturasSerie.map { FechaBackend.formatFechaTabla(it.fechaHora) },
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -264,6 +271,7 @@ fun DashboardScreen(
                                 unidad = "NTU",
                                 colorSensor = TurbColor,
                                 history = data.lecturasSerie.map { it.turbidez.toFloat() },
+                                historyDates = data.lecturasSerie.map { FechaBackend.formatFechaTabla(it.fechaHora) },
                                 modifier = Modifier.weight(1f),
                             )
                             SensorCard(
@@ -272,6 +280,7 @@ fun DashboardScreen(
                                 unidad = "ppm",
                                 colorSensor = TdsColor,
                                 history = data.lecturasSerie.map { it.tds.toFloat() },
+                                historyDates = data.lecturasSerie.map { FechaBackend.formatFechaTabla(it.fechaHora) },
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -297,7 +306,8 @@ fun DashboardScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         SccaSectionLabel("Últimas lecturas")
-                        data.lecturasSerie.takeLast(3).reversed().forEach { lectura ->
+                        val ultimasTres = remember(data.lecturasSerie) { data.lecturasSerie.takeLast(3).reversed() }
+                        ultimasTres.forEach { lectura ->
                             SccaCard {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -341,8 +351,9 @@ fun DashboardScreen(
 
 @Composable
 private fun CameraPanel(
-    nodo: Nodo?,
-    ultimaLectura: Lectura?,
+    nodo: com.proyecto.scca.domain.model.Nodo?,
+    ultimaLectura: com.proyecto.scca.domain.model.Lectura?,
+    imagenAgua: com.proyecto.scca.domain.model.ImagenAgua?,
     modifier: Modifier = Modifier,
 ) {
     SccaCard(modifier = modifier) {
@@ -379,24 +390,48 @@ private fun CameraPanel(
                     .border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline), MaterialTheme.shapes.small),
             contentAlignment = Alignment.Center,
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    Icons.Filled.CameraAlt,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(28.dp),
+            if (imagenAgua != null) {
+                val fullUrl = remember(imagenAgua.rutaArchivo) {
+                    if (imagenAgua.rutaArchivo.startsWith("http")) {
+                        imagenAgua.rutaArchivo
+                    } else {
+                        val baseUrl = com.proyecto.scca.BuildConfig.API_BASE_URL.removeSuffix("/")
+                        val path = if (imagenAgua.rutaArchivo.startsWith("/")) imagenAgua.rutaArchivo else "/${imagenAgua.rutaArchivo}"
+                        "$baseUrl$path"
+                    }
+                }
+                val context = LocalContext.current
+                coil.compose.AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(fullUrl)
+                        .crossfade(true)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .build(),
+                    contentDescription = "Imagen del agua",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
                 )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    "640 x 480 px",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    "Actualización cada 10 s",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.outline,
-                )
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Filled.CameraAlt,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(28.dp),
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "640 x 480 px",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        "Actualización cada 10 s",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
             }
             Text(
                 text = "REC",

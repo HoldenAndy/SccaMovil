@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Check
@@ -257,7 +258,7 @@ fun AppScaffold(
             }
         }
         if (quickActionsOpen) {
-            QuickActionsDialog(
+            QuickActionsSheet(
                 items = visibleNavItems,
                 onDismiss = { quickActionsOpen = false },
                 onNavigate = { ruta ->
@@ -290,31 +291,64 @@ fun AppScaffold(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun QuickActionsDialog(
+private fun QuickActionsSheet(
     items: List<NavItem>,
     onDismiss: () -> Unit,
     onNavigate: (String) -> Unit,
 ) {
-    AlertDialog(
+    androidx.compose.material3.ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text("Buscar / acciones") },
-        text = {
-            Column {
-                items.forEach { item ->
-                    TextButton(onClick = { onNavigate(item.ruta) }) {
+        sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(bottom = 32.dp)
+        ) {
+            Text("Búsqueda y acciones rápidas", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(16.dp))
+
+            Text("Navegación", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            items.forEach { item ->
+                TextButton(onClick = { onNavigate(item.ruta) }, modifier = Modifier.fillMaxWidth()) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         item.icono()
                         Spacer(Modifier.width(10.dp))
                         Text(item.etiqueta)
                     }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cerrar") }
-        },
-        shape = MaterialTheme.shapes.medium,
-    )
+
+            Spacer(Modifier.height(16.dp))
+            Text("Acciones rápidas", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(8.dp))
+            
+            TextButton(
+                onClick = { onNavigate(Rutas.Dashboard.ruta) }, 
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.MonitorHeart, contentDescription = null)
+                    Spacer(Modifier.width(10.dp))
+                    Text("Cambiar nodo activo (ir a Panel)")
+                }
+            }
+            TextButton(
+                onClick = { onNavigate(Rutas.Dashboard.ruta) }, 
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Analytics, contentDescription = null)
+                    Spacer(Modifier.width(10.dp))
+                    Text("Generar análisis IA (ir a Panel)")
+                }
+            }
+        }
+    }
 }
 
 @Composable

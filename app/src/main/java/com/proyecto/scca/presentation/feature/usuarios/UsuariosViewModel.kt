@@ -48,15 +48,17 @@ class UsuariosViewModel
         }
 
         fun cargar() {
-            viewModelScope.launch {
-                _uiState.value = UiState.Loading
-                usuarioRepository.listarUsuariosPaginado(_filtroActivo.value, pagina, 20).fold(
-                    onSuccess = { p ->
-                        _uiState.value = UiState.Success(UsuariosData(p.contenido, p.numeroPagina, p.totalPaginas))
-                    },
-                    onFailure = { _uiState.value = UiState.Error(it.message ?: "Error") },
-                )
-            }
+            viewModelScope.launch { cargarInterno() }
+        }
+
+        private suspend fun cargarInterno() {
+            _uiState.value = UiState.Loading
+            usuarioRepository.listarUsuariosPaginado(_filtroActivo.value, pagina, 20).fold(
+                onSuccess = { p ->
+                    _uiState.value = UiState.Success(UsuariosData(p.contenido, p.numeroPagina, p.totalPaginas))
+                },
+                onFailure = { _uiState.value = UiState.Error(it.message ?: "Error") },
+            )
         }
 
         fun setFiltroActivo(activo: Boolean?) {
@@ -97,20 +99,20 @@ class UsuariosViewModel
             viewModelScope.launch {
                 _actionLoading.value = true
                 _actionError.value = null
-                usuarioRepository.crearUsuario(
+                val result = usuarioRepository.crearUsuario(
                     CrearUsuarioRequest(
                         nombre = cleanNombre,
                         email = cleanEmail,
                         password = cleanPassword,
                         rol = rol,
                     ),
-                ).fold(
-                    onSuccess = {
-                        _credencialesCreadas.value = "${it.nombre}\n${it.email}\n$cleanPassword"
-                        cargar()
-                    },
-                    onFailure = { _actionError.value = it.message ?: "No se pudo crear el usuario." },
                 )
+                if (result.isSuccess) {
+                    _credencialesCreadas.value = "${result.getOrNull()?.nombre}\n${result.getOrNull()?.email}\n$cleanPassword"
+                    cargarInterno()
+                } else {
+                    _actionError.value = result.exceptionOrNull()?.message ?: "No se pudo crear el usuario."
+                }
                 _actionLoading.value = false
             }
         }
@@ -136,13 +138,15 @@ class UsuariosViewModel
             viewModelScope.launch {
                 _actionLoading.value = true
                 _actionError.value = null
-                usuarioRepository.actualizarUsuario(
+                val result = usuarioRepository.actualizarUsuario(
                     id,
                     ActualizarUsuarioRequest(nombre = cleanNombre, email = cleanEmail),
-                ).fold(
-                    onSuccess = { cargar() },
-                    onFailure = { _actionError.value = it.message ?: "No se pudo actualizar el usuario." },
                 )
+                if (result.isSuccess) {
+                    cargarInterno()
+                } else {
+                    _actionError.value = result.exceptionOrNull()?.message ?: "No se pudo actualizar el usuario."
+                }
                 _actionLoading.value = false
             }
         }

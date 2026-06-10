@@ -16,6 +16,7 @@ import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.int
 import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 
 /**
  * Parsea LocalDateTime del backend que puede llegar como:
@@ -71,6 +72,16 @@ object FechaBackend {
         val hace = now.minus(dias.days)
         val local = hace.toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault())
         return "${local.date}T00:00:00"
+    }
+
+    fun isoHaceHoras(horas: Int): String {
+        val now = kotlinx.datetime.Clock.System.now()
+        val hace = now.minus(horas.hours)
+        val local = hace.toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault())
+        val hora = local.hour.toString().padStart(2, '0')
+        val min = local.minute.toString().padStart(2, '0')
+        val sec = local.second.toString().padStart(2, '0')
+        return "${local.date}T$hora:$min:$sec"
     }
 }
 

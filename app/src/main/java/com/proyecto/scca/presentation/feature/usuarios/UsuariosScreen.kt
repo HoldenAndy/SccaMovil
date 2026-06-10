@@ -28,7 +28,7 @@ fun UsuariosScreen(viewModel: UsuariosViewModel = hiltViewModel()) {
     val credenciales by viewModel.credencialesCreadas.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        SccaPageHeader(title = "Usuarios", subtitle = "Administración de cuentas, roles y estado de acceso.")
+        SccaPageHeader(title = "Gestión de usuarios", subtitle = "Cuentas con acceso al sistema y sus roles asociados. Solo administradores pueden crear o modificar.")
         Spacer(Modifier.height(12.dp))
 
         Row(
@@ -67,7 +67,7 @@ fun UsuariosScreen(viewModel: UsuariosViewModel = hiltViewModel()) {
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )
                 }
-                items(data.usuarios) { usuario ->
+                items(data.usuarios, key = { it.idUsuario }, contentType = { "usuario" }) { usuario ->
                     UsuarioCard(
                         usuario = usuario,
                         loading = actionLoading,
@@ -135,6 +135,7 @@ private fun CrearUsuarioCard(
     var password by remember { mutableStateOf(generarPasswordTemporal()) }
     var rol by remember { mutableStateOf(Rol.CLIENTE) }
     var showRolMenu by remember { mutableStateOf(false) }
+    val roles = remember { Rol.values() }
 
     SccaCard(modifier = modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -180,7 +181,7 @@ private fun CrearUsuarioCard(
                 Text("Rol: ${rol.name}")
             }
             DropdownMenu(expanded = showRolMenu, onDismissRequest = { showRolMenu = false }) {
-                Rol.values().forEach { item ->
+                roles.forEach { item ->
                     DropdownMenuItem(
                         text = { Text(item.name) },
                         onClick = {
@@ -227,6 +228,7 @@ fun UsuarioCard(
 ) {
     var showRolMenu by remember { mutableStateOf(false) }
     var showEdit by remember { mutableStateOf(false) }
+    val roles = remember { Rol.values() }
 
     SccaCard(modifier = modifier) {
         Row(
@@ -253,7 +255,7 @@ fun UsuarioCard(
                 expanded = showRolMenu,
                 onDismissRequest = { showRolMenu = false },
             ) {
-                Rol.values().forEach { rol ->
+                roles.forEach { rol ->
                     DropdownMenuItem(
                         text = { Text(rol.name) },
                         onClick = {
