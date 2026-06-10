@@ -466,18 +466,20 @@ private fun GraficosPorAtributo(
                 SparklineChart(
                     data = values,
                     color = attr.color,
-                    unidad = attr.unidad,
-                    label = attr.label,
-                    dates = dates,
-                    minVal = attr.min,
-                    maxVal = attr.max,
-                    refLine = attr.refLine,
-                    refLabel = attr.refLabel,
-                    isAlert = attr.isAlert,
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .height(160.dp),
+                    config = SparklineChartConfig(
+                        unidad = attr.unidad,
+                        label = attr.label,
+                        dates = dates,
+                        minVal = attr.min,
+                        maxVal = attr.max,
+                        refLine = attr.refLine,
+                        refLabel = attr.refLabel,
+                        isAlert = attr.isAlert,
+                    ),
                 )
             }
         }
