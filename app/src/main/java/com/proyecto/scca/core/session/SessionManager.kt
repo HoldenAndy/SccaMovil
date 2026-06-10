@@ -43,7 +43,8 @@ class SessionManager
                     EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
                 )
-            } catch (e: Exception) {
+            } catch (e: java.security.GeneralSecurityException) {
+                android.util.Log.e("SessionManager", "Security error reading encrypted prefs", e)
                 context.deleteSharedPreferences(PREF_FILE)
                 try {
                     EncryptedSharedPreferences.create(
@@ -53,8 +54,30 @@ class SessionManager
                         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
                     )
-                } catch (e2: Exception) {
+                } catch (e2: java.security.GeneralSecurityException) {
+                    android.util.Log.e("SessionManager", "Irrecoverable Keystore error", e2)
                     // KeyStore irrecuperable: fallback a prefs sin cifrado para no crashear la app
+                    context.getSharedPreferences(PREF_FILE + "_plain", android.content.Context.MODE_PRIVATE)
+                } catch (e2: java.io.IOException) {
+                    android.util.Log.e("SessionManager", "IO error reading encrypted prefs retry", e2)
+                    context.getSharedPreferences(PREF_FILE + "_plain", android.content.Context.MODE_PRIVATE)
+                }
+            } catch (e: java.io.IOException) {
+                android.util.Log.e("SessionManager", "IO error reading encrypted prefs", e)
+                context.deleteSharedPreferences(PREF_FILE)
+                try {
+                    EncryptedSharedPreferences.create(
+                        context,
+                        PREF_FILE,
+                        masterKey,
+                        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+                    )
+                } catch (e2: java.security.GeneralSecurityException) {
+                    android.util.Log.e("SessionManager", "Irrecoverable Keystore error", e2)
+                    context.getSharedPreferences(PREF_FILE + "_plain", android.content.Context.MODE_PRIVATE)
+                } catch (e2: java.io.IOException) {
+                    android.util.Log.e("SessionManager", "IO error reading encrypted prefs retry", e2)
                     context.getSharedPreferences(PREF_FILE + "_plain", android.content.Context.MODE_PRIVATE)
                 }
             }
