@@ -11,9 +11,9 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -77,19 +77,21 @@ data class SccaDensityTokens(
     val sectionGap: androidx.compose.ui.unit.Dp,
 )
 
-val NormalDensity = SccaDensityTokens(
-    rowPaddingY = 12.dp,
-    rowPaddingX = 16.dp,
-    cardPadding = 18.dp,
-    sectionGap = 22.dp,
-)
+val NormalDensity =
+    SccaDensityTokens(
+        rowPaddingY = 12.dp,
+        rowPaddingX = 16.dp,
+        cardPadding = 18.dp,
+        sectionGap = 22.dp,
+    )
 
-val CompactDensity = SccaDensityTokens(
-    rowPaddingY = 8.dp,
-    rowPaddingX = 12.dp,
-    cardPadding = 14.dp,
-    sectionGap = 16.dp,
-)
+val CompactDensity =
+    SccaDensityTokens(
+        rowPaddingY = 8.dp,
+        rowPaddingX = 12.dp,
+        cardPadding = 14.dp,
+        sectionGap = 16.dp,
+    )
 
 val LocalSccaDensity = staticCompositionLocalOf { NormalDensity }
 

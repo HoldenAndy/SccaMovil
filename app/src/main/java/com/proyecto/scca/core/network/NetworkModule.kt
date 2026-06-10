@@ -83,9 +83,7 @@ object NetworkModule {
     @Provides
     @Singleton
     @SseClientQualifier
-    fun provideSseOkHttpClient(
-        authInterceptor: AuthInterceptor,
-    ): OkHttpClient {
+    fun provideSseOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor) // NO se anade el loggingInterceptor de BODY
             .connectTimeout(15, TimeUnit.SECONDS)

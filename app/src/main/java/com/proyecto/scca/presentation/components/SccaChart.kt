@@ -59,46 +59,53 @@ fun SparklineChart(
     val refLineColor = Color(0xFFD97706)
 
     Canvas(
-        modifier = modifier
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = { offset ->
-                        touchX = offset.x
-                        tryAwaitRelease()
-                        touchX = null
-                    }
-                )
-            }
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { offset -> touchX = offset.x },
-                    onDragEnd = { touchX = null },
-                    onDragCancel = { touchX = null },
-                    onDrag = { change, _ -> touchX = change.position.x },
-                )
-            },
+        modifier =
+            modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = { offset ->
+                            touchX = offset.x
+                            tryAwaitRelease()
+                            touchX = null
+                        },
+                    )
+                }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { offset -> touchX = offset.x },
+                        onDragEnd = { touchX = null },
+                        onDragCancel = { touchX = null },
+                        onDrag = { change, _ -> touchX = change.position.x },
+                    )
+                },
     ) {
-        val lp = 38.dp.toPx()   // left padding for y-axis labels
-        val bp = 18.dp.toPx()   // bottom padding for x-axis labels
+        val lp = 38.dp.toPx() // left padding for y-axis labels
+        val bp = 18.dp.toPx() // bottom padding for x-axis labels
         val cw = size.width - lp
         val ch = size.height - bp
 
         fun valueToY(v: Float) = (1f - (v - chartMin) / range) * ch
+
         fun indexToX(i: Int) = lp + if (data.size > 1) i * (cw / (data.size - 1)) else cw / 2f
 
         val dashSoft = PathEffect.dashPathEffect(floatArrayOf(4f, 6f), 0f)
         val dashRef = PathEffect.dashPathEffect(floatArrayOf(3f, 5f), 0f)
 
         fun formatY(v: Float): String =
-            if (v >= 100f) String.format(Locale.US, "%.0f", v)
-            else if (v % 1f == 0f) String.format(Locale.US, "%.0f", v)
-            else String.format(Locale.US, "%.1f", v)
+            if (v >= 100f) {
+                String.format(Locale.US, "%.0f", v)
+            } else if (v % 1f == 0f) {
+                String.format(Locale.US, "%.0f", v)
+            } else {
+                String.format(Locale.US, "%.1f", v)
+            }
 
-        val axisStyle = TextStyle(
-            fontSize = 8.sp,
-            color = axisLabelColor,
-            fontFamily = FontFamily.Monospace,
-        )
+        val axisStyle =
+            TextStyle(
+                fontSize = 8.sp,
+                color = axisLabelColor,
+                fontFamily = FontFamily.Monospace,
+            )
 
         // 1. Grid lines at 25%, 50%, 75%
         for (i in 1..3) {
@@ -121,10 +128,11 @@ fun SparklineChart(
             drawText(
                 textMeasurer = textMeasurer,
                 text = text,
-                topLeft = Offset(
-                    (lp - layout.size.width - 3.dp.toPx()).coerceAtLeast(0f),
-                    textY,
-                ),
+                topLeft =
+                    Offset(
+                        (lp - layout.size.width - 3.dp.toPx()).coerceAtLeast(0f),
+                        textY,
+                    ),
                 style = axisStyle,
             )
         }
@@ -146,10 +154,11 @@ fun SparklineChart(
                     drawText(
                         textMeasurer = textMeasurer,
                         text = lbl,
-                        topLeft = Offset(
-                            size.width - lblLayout.size.width - 2.dp.toPx(),
-                            (refY - lblLayout.size.height - 1.dp.toPx()).coerceAtLeast(0f),
-                        ),
+                        topLeft =
+                            Offset(
+                                size.width - lblLayout.size.width - 2.dp.toPx(),
+                                (refY - lblLayout.size.height - 1.dp.toPx()).coerceAtLeast(0f),
+                            ),
                         style = refStyle,
                     )
                 }
@@ -164,19 +173,21 @@ fun SparklineChart(
             if (index == 0) linePath.moveTo(x, y) else linePath.lineTo(x, y)
         }
 
-        val fillPath = Path().apply {
-            addPath(linePath)
-            lineTo(indexToX(data.size - 1), ch)
-            lineTo(lp, ch)
-            close()
-        }
+        val fillPath =
+            Path().apply {
+                addPath(linePath)
+                lineTo(indexToX(data.size - 1), ch)
+                lineTo(lp, ch)
+                close()
+            }
         drawPath(
             path = fillPath,
-            brush = Brush.verticalGradient(
-                colors = listOf(color.copy(alpha = 0.22f), Color.Transparent),
-                startY = 0f,
-                endY = ch,
-            ),
+            brush =
+                Brush.verticalGradient(
+                    colors = listOf(color.copy(alpha = 0.22f), Color.Transparent),
+                    startY = 0f,
+                    endY = ch,
+                ),
             style = Fill,
         )
         drawPath(
@@ -200,18 +211,20 @@ fun SparklineChart(
         // 6. X-axis labels (4 evenly spaced, "dd/mm HH:MM")
         if (dates.isNotEmpty() && data.size > 1) {
             val labelCount = 4
-            val indices = (0 until labelCount).map { i ->
-                (i * (data.size - 1) / (labelCount - 1)).coerceIn(0, data.size - 1)
-            }.distinct()
+            val indices =
+                (0 until labelCount).map { i ->
+                    (i * (data.size - 1) / (labelCount - 1)).coerceIn(0, data.size - 1)
+                }.distinct()
             indices.forEach { idx ->
                 val x = indexToX(idx)
                 val raw = dates.getOrNull(idx) ?: return@forEach
                 // "dd/mm/yyyy HH:MM" → "dd/mm HH:MM"
-                val shortLabel = when {
-                    axisTimeOnly && raw.length >= 5 -> raw.takeLast(5)
-                    raw.length >= 16 -> "${raw.take(5)} ${raw.takeLast(5)}"
-                    else -> raw
-                }
+                val shortLabel =
+                    when {
+                        axisTimeOnly && raw.length >= 5 -> raw.takeLast(5)
+                        raw.length >= 16 -> "${raw.take(5)} ${raw.takeLast(5)}"
+                        else -> raw
+                    }
                 val layout = textMeasurer.measure(shortLabel, axisStyle)
                 val textX = (x - layout.size.width / 2f).coerceIn(lp, size.width - layout.size.width.toFloat())
                 drawText(

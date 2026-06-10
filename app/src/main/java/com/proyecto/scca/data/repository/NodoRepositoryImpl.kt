@@ -19,13 +19,12 @@ class NodoRepositoryImpl
         private val nodoApi: NodoApi,
         private val sessionManager: SessionManager,
     ) : NodoRepository {
-
         private data class MisNodosEntry(val token: String, val data: List<Nodo>, val timestamp: Long)
 
         private var misNodosCache: MisNodosEntry? = null
 
         companion object {
-            private const val MIS_NODOS_TTL_MS = 30_000L  // 30 segundos
+            private const val MIS_NODOS_TTL_MS = 30_000L // 30 segundos
         }
 
         override suspend fun listarNodosPaginado(

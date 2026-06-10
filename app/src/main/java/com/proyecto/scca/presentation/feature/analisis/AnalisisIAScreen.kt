@@ -17,7 +17,6 @@ import com.proyecto.scca.domain.model.AnalisisIa
 import com.proyecto.scca.presentation.components.SccaCard
 import com.proyecto.scca.presentation.components.SccaPageHeader
 import com.proyecto.scca.presentation.components.StateContent
-
 import com.proyecto.scca.presentation.feature.historial.RangoHistorialCard
 
 @Composable
