@@ -1,4 +1,4 @@
-﻿package com.proyecto.scca.presentation.components
+package com.proyecto.scca.presentation.components
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -36,7 +36,7 @@ fun MarkdownText(
                         currentIndex = boldEndIndex + 2
                     } else {
                         append(markdown.substring(currentIndex))
-                        break
+                        currentIndex = markdown.length
                     }
                 } else if (italicIndex != -1) {
                     // Found italic
@@ -49,11 +49,11 @@ fun MarkdownText(
                         currentIndex = italicEndIndex + 1
                     } else {
                         append(markdown.substring(currentIndex))
-                        break
+                        currentIndex = markdown.length
                     }
                 } else {
                     append(markdown.substring(currentIndex))
-                    break
+                    currentIndex = markdown.length
                 }
             }
         }
