@@ -126,10 +126,12 @@ fun SensorCard(
                     data = history,
                     color = colorSensor,
                     modifier = Modifier.fillMaxWidth().height(64.dp),
-                    dates = historyDates,
-                    axisTimeOnly = true,
-                    unidad = unidad,
-                    label = titulo,
+                    config = SparklineChartConfig(
+                        dates = historyDates,
+                        axisTimeOnly = true,
+                        unidad = unidad,
+                        label = titulo,
+                    ),
                 )
                 Spacer(Modifier.height(6.dp))
                 LinearProgressIndicator(
