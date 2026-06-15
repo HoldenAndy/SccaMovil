@@ -82,7 +82,9 @@ class DashboardViewModel
         fun cargarNodos() {
             iniciarSSE()
             viewModelScope.launch {
-                _uiState.value = UiState.Loading
+                if (_uiState.value !is UiState.Success) {
+                    _uiState.value = UiState.Loading
+                }
                 val rol = sessionManager.rolActual ?: return@launch
                 obtenerNodosUseCase(rol).fold(
                     onSuccess = { lista ->
@@ -111,7 +113,12 @@ class DashboardViewModel
             errorGeneracion = null
             generandoAnalisis = false
             
-            _uiState.value = UiState.Loading
+            if (_uiState.value is UiState.Success) {
+                emitirEstado()
+            } else {
+                _uiState.value = UiState.Loading
+            }
+            
             cargarDatosJob?.cancel()
             cargarDatosJob = viewModelScope.launch {
                 preferenciasStore.setUltimoNodo(nodo.idNodo.toString())
