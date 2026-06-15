@@ -77,10 +77,10 @@ class DashboardViewModel
 
         init {
             cargarNodos()
-            iniciarSSE()
         }
 
         fun cargarNodos() {
+            iniciarSSE()
             viewModelScope.launch {
                 _uiState.value = UiState.Loading
                 val rol = sessionManager.rolActual ?: return@launch
