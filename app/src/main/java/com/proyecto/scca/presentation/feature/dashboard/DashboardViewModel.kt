@@ -23,6 +23,8 @@ import com.proyecto.scca.presentation.components.UiState
 import com.proyecto.scca.presentation.navigation.Rutas
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
@@ -59,6 +61,7 @@ class DashboardViewModel
         private val _uiState = MutableStateFlow<UiState<DashboardData>>(UiState.Loading)
         val uiState: StateFlow<UiState<DashboardData>> = _uiState.asStateFlow()
 
+        private var cargarDatosJob: Job? = null
         private var pollingJob: Job? = null
         private var sseJob: Job? = null
         private var nodos: List<Nodo> = emptyList()
@@ -74,6 +77,7 @@ class DashboardViewModel
 
         init {
             cargarNodos()
+            iniciarSSE()
         }
 
         fun cargarNodos() {
@@ -99,23 +103,38 @@ class DashboardViewModel
 
         fun seleccionarNodo(nodo: Nodo) {
             nodoSeleccionado = nodo
+            ultimaLectura = null
+            lecturasSerie = emptyList()
+            imagenAgua = null
+            ultimoAnalisis = null
+            lecturaConImagen = false
+            errorGeneracion = null
+            generandoAnalisis = false
+            
             _uiState.value = UiState.Loading
-            viewModelScope.launch {
+            cargarDatosJob?.cancel()
+            cargarDatosJob = viewModelScope.launch {
                 preferenciasStore.setUltimoNodo(nodo.idNodo.toString())
                 cargarDatosNodo(nodo.idNodo)
             }
-            iniciarSSE()
         }
 
         private suspend fun cargarDatosNodo(idNodo: Int) {
             val ahora = FechaBackend.isoHoy()
 
-            lecturaRepository.obtenerUltimaLectura(idNodo).onSuccess { lectura ->
+            var ultimaLecturaResult: Result<Lectura>? = null
+            var graficosResult: Result<List<Lectura>>? = null
+
+            coroutineScope {
+                launch { ultimaLecturaResult = lecturaRepository.obtenerUltimaLectura(idNodo) }
+                launch { graficosResult = lecturaRepository.obtenerGraficos(idNodo, FechaBackend.isoHaceHoras(2), ahora) }
+            }
+
+            ultimaLecturaResult?.onSuccess { lectura ->
                 actualizarLecturaCompleta(lectura)
             }
 
-            // Chart series (últimas 2 horas)
-            lecturaRepository.obtenerGraficos(idNodo, FechaBackend.isoHaceHoras(2), ahora).onSuccess { serie ->
+            graficosResult?.onSuccess { serie ->
                 lecturasSerie = serie.takeLast(50)
                 emitirEstado()
             }
@@ -138,9 +157,8 @@ class DashboardViewModel
                                 (lecturasSerie.filterNot { it.idLectura == lectura.idLectura } + lectura)
                                     .takeLast(50)
                             ultimaLectura = lectura
+                            emitirEstado()
                         }
-                        .debounce(80)
-                        .onEach { emitirEstado() }
                         .catch {
                             sseConectado = false
                             emitirEstado()
@@ -163,12 +181,18 @@ class DashboardViewModel
 
         private suspend fun actualizarLecturaCompleta(lectura: Lectura) {
             ultimaLectura = lectura
-            val imgResult = imagenRepository.obtenerImagenPorLectura(lectura.idLectura)
-            lecturaConImagen = imgResult.isSuccess
-            imagenAgua = imgResult.getOrNull()
-            ultimoAnalisis =
-                analisisRepository.obtenerAnalisisPorLectura(lectura.idLectura)
-                    .getOrNull()
+            
+            var imgResult: Result<ImagenAgua>? = null
+            var analisisResult: Result<AnalisisIa>? = null
+
+            coroutineScope {
+                launch { imgResult = imagenRepository.obtenerImagenPorLectura(lectura.idLectura) }
+                launch { analisisResult = analisisRepository.obtenerAnalisisPorLectura(lectura.idLectura) }
+            }
+
+            lecturaConImagen = imgResult?.isSuccess ?: false
+            imagenAgua = imgResult?.getOrNull()
+            ultimoAnalisis = analisisResult?.getOrNull()
             emitirEstado()
         }
 
@@ -256,6 +280,7 @@ class DashboardViewModel
 
         override fun onCleared() {
             super.onCleared()
+            cargarDatosJob?.cancel()
             sseJob?.cancel()
             pollingJob?.cancel()
         }
